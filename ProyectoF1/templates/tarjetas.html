@@ -8,7 +8,8 @@
         <button type="submit" class="btnSubmit">Consultar tarjeta</button>
     </form>
     <br>
-    <table class="tabla1">
+    {% if numeroTarjeta is not None %}
+        <table class="tabla1">
         <tr>
             <th>Numero tarjeta</th>
             <th>Numero de cuenta</th>
@@ -19,9 +20,14 @@
         <tr>
             <td>{{ numeroTarjeta }}</td>
             <td>{{ numeroCuenta }}</td>
-            <td>{{ puntos }}</td>
+            {% if puntos is None %}
+                <td>------</td>
+            {% else %}
+                <td>{{ puntos }}</td>
+            {% endif %}
             <td>{{ saldoQ }}</td>
             <td>{{ saldoS }}</td>
         </tr>
     </table>
+    {% endif %}
 {% endblock %}
