@@ -339,3 +339,16 @@ class Tipoempresa(models.Model):
     class Meta:
         managed = False
         db_table = 'tipoempresa'
+
+
+class Transacciontarjeta(models.Model):
+    codigotransaccion = models.AutoField(db_column='codigoTransaccion', primary_key=True)  # Field name made lowercase.
+    numerotarjeta = models.ForeignKey(Tarjetadecredito, models.DO_NOTHING, db_column='numeroTarjeta')  # Field name made lowercase.
+    codigomoneda = models.ForeignKey(Moneda, models.DO_NOTHING, db_column='codigoMoneda')  # Field name made lowercase.
+    fecha = models.DateField(blank=True, null=True)
+    descipcion = models.CharField(max_length=255, blank=True, null=True)
+    monto = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'transacciontarjeta'

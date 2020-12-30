@@ -194,3 +194,9 @@ select{
 .error{
     color: red;
 }
+img{
+    width: 300px;
+    height: 250px;
+    margin: 10px auto;
+    display: block;
+}

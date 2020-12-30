@@ -21,4 +21,5 @@ urlpatterns = [
     path('logincompras/', views.login, name="logincomp"),
     path('homecompras/', views.home, name="homecompras"),
     path('logoutcomp/', views.logoutCompras, name="logoutcomp"),
+    path('detalleproducto/', views.detalleProducto, name="detalleproducto"),
 ]

@@ -1,4 +1,11 @@
 {% extends 'baseCompras.html' %}
+{% load static %}
 {% block content %}
     <h1>Compraaaas</h1>
+    <form class="formulario" method="post">
+        {{ form.as_p }}
+        {% csrf_token %}
+        <button type="submit" class="btnSubmit"> Ver detalles </button>
+    </form>
+
 {% endblock %}

@@ -1,0 +1,30 @@
+{% extends 'baseCompras.html' %}
+{% load static %}
+{% block content %}
+    <img src="{% static direccion %}">
+    <table class="tabla1">
+        <tr>
+            <th>Producto</th>
+            <th>Precio</th>
+            <th>Moneda</th>
+            <th>Descripcion</th>
+        </tr>
+        <tr>
+            <td>{{ producto }}</td>
+            <td>{{ precio }}</td>
+            <td>{{ moneda }}</td>
+            <td>{{ descripcion }}</td>
+        </tr>
+    </table>
+    <hr>
+    {% if mensaje != "No posee tarjetas de credito" %}
+        <form class="formulario" method="post">
+            {{ form.as_p }}
+            {% csrf_token %}
+            <button type="submit" class="btnSubmit"> Comprar </button>
+        </form>
+        {% else %}
+            <h1 class="error">{{ mensaje }}</h1>
+    {% endif %}
+
+{% endblock %}
