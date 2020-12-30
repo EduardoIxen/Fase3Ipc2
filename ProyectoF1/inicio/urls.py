@@ -29,4 +29,6 @@ urlpatterns = [
     path('infoempresa/', views.infoEmpresa, name="infoempresa"),
     path('registroplanilla/', views.registroPlanilla, name="registroplanilla"),
     path('addempleadoplanilla/', views.addEmpleadoPlanilla, name="addempleadoplanilla"),
+    path('cargarcsv/', views.CargarCSV, name="cargarcsv"),
+    path('cargarcsv2/', views.cargarCSV2, name="seleccionarplanilla"),
 ]

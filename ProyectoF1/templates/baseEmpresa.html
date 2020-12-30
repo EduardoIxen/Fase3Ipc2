@@ -17,7 +17,7 @@
             <div class="dropdown-content">
                 <a href=" {% url 'registroplanilla' %}">Registro de planillas</a>
                 <a href="{% url 'addempleadoplanilla' %}">Agregar empleado a planilla</a>
-                <a href="#">Pago de proveedores</a>
+                <a href="{% url 'cargarcsv' %}">Cargar archivo CSV de planilla</a>
             </div>
         </div>
         <a id="logout" href="{% url 'logout' %}">Salir</a>

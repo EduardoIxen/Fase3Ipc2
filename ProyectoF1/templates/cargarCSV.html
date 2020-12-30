@@ -1,0 +1,12 @@
+{% extends 'baseEmpresa.html' %}
+{% block content %}
+    <h1>Cargar CSV</h1>
+
+    <form method="post" enctype="multipart/form-data" class="formulario">
+        {% csrf_token %}
+        <label for="file">Seleccionar archivo CSV</label>
+        <input type="file" name="file" class="btnSubmit">
+        <br>
+        <button type="submit" class="btnSubmit">Cargar archivo</button>
+    </form>
+{% endblock %}

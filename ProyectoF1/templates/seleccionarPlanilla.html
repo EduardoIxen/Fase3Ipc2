@@ -1,0 +1,10 @@
+{% extends 'baseEmpresa.html' %}
+{% block content %}
+    <h1>Seleccion</h1>
+    <form method="post" class="formulario">
+        {{ form.as_p }}
+        {% csrf_token %}
+        <button type="submit" class="btnSubmit"> Seleccionar planilla </button>
+    </form>
+    <h1>{{ mensaje }}</h1>
+{% endblock %}

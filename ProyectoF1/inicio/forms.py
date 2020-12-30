@@ -37,3 +37,12 @@ class IngresoUsuarioPlanilla(forms.Form):
         model = Detalleplanilla;
         fields = ('nombreCuentaEmpleado', 'nombre', 'sueldo', 'formaPago', 'planilla')
 
+
+class ConsultaPlanilla(forms.Form):
+    def __init__(self, listaPlanillas, *args, **kwargs):
+        super(ConsultaPlanilla, self).__init__(*args, **kwargs)
+        self.fields['planilla'] = forms.CharField(widget=forms.Select(choices=listaPlanillas))
+
+    class Meta:
+        fields = ('planilla')
+

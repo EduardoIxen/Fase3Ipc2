@@ -1,4 +1,5 @@
 import MySQLdb
+import csv, io
 from django.shortcuts import render
 from django.shortcuts import redirect
 from django.http import HttpResponseRedirect
@@ -274,3 +275,74 @@ def addEmpleadoPlanilla(request):
                     'form': form,
                 }
     return render(request, "addEmpleadoPlanilla.html", variables)
+
+
+def CargarCSV(request):
+    prompt = {
+        'orden': 'nombre, cuenta, sueldo'
+    }
+
+    if request.method == "GET":
+        return render(request, "cargarCSV.html", prompt)
+
+    csvFile = request.FILES['file']
+    dataSet = csvFile.read().decode('UTF-8')
+    io_string = io.StringIO(dataSet)
+    print(io_string)
+    contador = 0
+    listaRegistro = []
+    for columna in csv.reader(io_string, delimiter=',', quotechar='|'):
+        dicRegistro = {}
+        dicRegistro['Nombre'] = columna[0]
+        dicRegistro['Cuenta'] = columna[1]
+        dicRegistro['Sueldo'] = columna[2]
+        listaRegistro.append(dicRegistro)
+
+    request.session['csv'] = listaRegistro
+    return redirect('seleccionarplanilla')
+
+def cargarCSV2(request):
+    dicEmpresa = request.session['datos']
+    idEmpresa = dicEmpresa.get('idEmpresa')
+    obtenerPlanillas = Planilla.objects.filter(idempresa=idEmpresa).values_list()
+    listaPlanillas = []
+    if len(obtenerPlanillas) > 0:
+        for planilla in obtenerPlanillas:
+            listaPlanillas.append((planilla[0], planilla[1]))
+    else:
+        listaPlanillas.append(("No hay planillas", "No hay planillas"))
+    print(listaPlanillas)
+    form = ConsultaPlanilla(listaPlanillas)
+    variables = {
+        'form': form
+    }
+    registrosCSV = request.session['csv']
+    print("tiiipooo", registrosCSV)
+    if request.method == 'POST':
+        form = ConsultaPlanilla(listaPlanillas, data=request.POST)
+        if form.is_valid():
+            datos = form.cleaned_data
+            planilla = datos.get('planilla')
+            print(planilla)
+            contador = 0
+            for registro in registrosCSV:
+                contador += 1
+                if contador > 1:
+                    print(registro['Nombre'])
+                    db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
+                    cursor = db.cursor()
+                    consulta = "INSERT INTO DetallePlanilla(codigoPlanilla, numeroCuenta, nombre, sueldo) values(" + str(planilla) + ", " + str(
+                        registro['Cuenta']) + ", '"+ registro['Nombre']+"', "+registro['Sueldo']+")"
+                    print(consulta)
+                    cursor.execute(consulta)
+                    db.commit()
+                    cursor.close()
+                    mensaje = "Usuarios registrados con exito"
+                    form = ConsultaPlanilla(listaPlanillas)
+                    variables = {
+                        'mensaje':mensaje,
+                        'form': form
+                    }
+
+
+    return render(request, "seleccionarPlanilla.html", variables)
