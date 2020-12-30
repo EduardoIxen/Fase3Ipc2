@@ -18,6 +18,72 @@ class Administrador(models.Model):
         db_table = 'administrador'
 
 
+class AuthGroup(models.Model):
+    name = models.CharField(unique=True, max_length=150)
+
+    class Meta:
+        managed = False
+        db_table = 'auth_group'
+
+
+class AuthGroupPermissions(models.Model):
+    group = models.ForeignKey(AuthGroup, models.DO_NOTHING)
+    permission = models.ForeignKey('AuthPermission', models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'auth_group_permissions'
+        unique_together = (('group', 'permission'),)
+
+
+class AuthPermission(models.Model):
+    name = models.CharField(max_length=255)
+    content_type = models.ForeignKey('DjangoContentType', models.DO_NOTHING)
+    codename = models.CharField(max_length=100)
+
+    class Meta:
+        managed = False
+        db_table = 'auth_permission'
+        unique_together = (('content_type', 'codename'),)
+
+
+class AuthUser(models.Model):
+    password = models.CharField(max_length=128)
+    last_login = models.DateTimeField(blank=True, null=True)
+    is_superuser = models.IntegerField()
+    username = models.CharField(unique=True, max_length=150)
+    first_name = models.CharField(max_length=150)
+    last_name = models.CharField(max_length=150)
+    email = models.CharField(max_length=254)
+    is_staff = models.IntegerField()
+    is_active = models.IntegerField()
+    date_joined = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'auth_user'
+
+
+class AuthUserGroups(models.Model):
+    user = models.ForeignKey(AuthUser, models.DO_NOTHING)
+    group = models.ForeignKey(AuthGroup, models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'auth_user_groups'
+        unique_together = (('user', 'group'),)
+
+
+class AuthUserUserPermissions(models.Model):
+    user = models.ForeignKey(AuthUser, models.DO_NOTHING)
+    permission = models.ForeignKey(AuthPermission, models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'auth_user_user_permissions'
+        unique_together = (('user', 'permission'),)
+
+
 class Clienteindividual(models.Model):
     cui = models.BigIntegerField(primary_key=True)
     nit = models.CharField(max_length=20)
@@ -33,6 +99,7 @@ class Clienteindividual(models.Model):
 
 class Cuentadeahorro(models.Model):
     codigocuenta = models.BigIntegerField(db_column='codigoCuenta', primary_key=True)  # Field name made lowercase.
+    codigomoneda = models.ForeignKey('Moneda', models.DO_NOTHING, db_column='codigoMoneda')  # Field name made lowercase.
     tasainteres = models.IntegerField(db_column='tasaInteres')  # Field name made lowercase.
     saldo = models.DecimalField(max_digits=15, decimal_places=2)
 
@@ -43,6 +110,7 @@ class Cuentadeahorro(models.Model):
 
 class Cuentamonetaria(models.Model):
     codigocuenta = models.BigIntegerField(db_column='codigoCuenta', primary_key=True)  # Field name made lowercase.
+    codigomoneda = models.ForeignKey('Moneda', models.DO_NOTHING, db_column='codigoMoneda')  # Field name made lowercase.
     montopormanejo = models.DecimalField(db_column='montoPorManejo', max_digits=5, decimal_places=2, blank=True, null=True)  # Field name made lowercase.
     saldo = models.DecimalField(max_digits=15, decimal_places=2)
 
@@ -53,6 +121,7 @@ class Cuentamonetaria(models.Model):
 
 class Cuentaplazofijo(models.Model):
     codigocuenta = models.BigIntegerField(db_column='codigoCuenta', primary_key=True)  # Field name made lowercase.
+    codigomoneda = models.ForeignKey('Moneda', models.DO_NOTHING, db_column='codigoMoneda')  # Field name made lowercase.
     tasainteres = models.IntegerField(db_column='tasaInteres')  # Field name made lowercase.
     periododetiempo = models.IntegerField(db_column='periodoDeTiempo')  # Field name made lowercase.
     saldo = models.DecimalField(max_digits=15, decimal_places=2)
@@ -76,6 +145,50 @@ class Detalleclientecuenta(models.Model):
         db_table = 'detalleclientecuenta'
 
 
+class DjangoAdminLog(models.Model):
+    action_time = models.DateTimeField()
+    object_id = models.TextField(blank=True, null=True)
+    object_repr = models.CharField(max_length=200)
+    action_flag = models.PositiveSmallIntegerField()
+    change_message = models.TextField()
+    content_type = models.ForeignKey('DjangoContentType', models.DO_NOTHING, blank=True, null=True)
+    user = models.ForeignKey(AuthUser, models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'django_admin_log'
+
+
+class DjangoContentType(models.Model):
+    app_label = models.CharField(max_length=100)
+    model = models.CharField(max_length=100)
+
+    class Meta:
+        managed = False
+        db_table = 'django_content_type'
+        unique_together = (('app_label', 'model'),)
+
+
+class DjangoMigrations(models.Model):
+    app = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
+    applied = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'django_migrations'
+
+
+class DjangoSession(models.Model):
+    session_key = models.CharField(primary_key=True, max_length=40)
+    session_data = models.TextField()
+    expire_date = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'django_session'
+
+
 class Empresa(models.Model):
     idempresa = models.BigAutoField(db_column='idEmpresa', primary_key=True)  # Field name made lowercase.
     idtipoempresa = models.ForeignKey('Tipoempresa', models.DO_NOTHING, db_column='idTipoEmpresa')  # Field name made lowercase.
@@ -90,6 +203,50 @@ class Empresa(models.Model):
         db_table = 'empresa'
 
 
+class Marca(models.Model):
+    codigomarca = models.AutoField(db_column='codigoMarca', primary_key=True)  # Field name made lowercase.
+    nombre = models.CharField(max_length=50)
+
+    class Meta:
+        managed = False
+        db_table = 'marca'
+
+
+class Moneda(models.Model):
+    codigomoneda = models.AutoField(db_column='codigoMoneda', primary_key=True)  # Field name made lowercase.
+    nombre = models.CharField(max_length=50)
+
+    class Meta:
+        managed = False
+        db_table = 'moneda'
+
+
+class Tarjetadecredito(models.Model):
+    numerotarjeta = models.BigIntegerField(db_column='numeroTarjeta', primary_key=True)  # Field name made lowercase.
+    codigomarca = models.ForeignKey(Marca, models.DO_NOTHING, db_column='codigoMarca')  # Field name made lowercase.
+    codigotipocliente = models.ForeignKey('Tipodecliente', models.DO_NOTHING, db_column='codigoTipoCliente')  # Field name made lowercase.
+    cuicliente = models.ForeignKey(Clienteindividual, models.DO_NOTHING, db_column='cuiCliente', blank=True, null=True)  # Field name made lowercase.
+    idempresa = models.ForeignKey(Empresa, models.DO_NOTHING, db_column='idEmpresa', blank=True, null=True)  # Field name made lowercase.
+    puntos = models.IntegerField(blank=True, null=True)
+    cashback = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
+    limitecredito = models.DecimalField(db_column='limiteCredito', max_digits=15, decimal_places=2)  # Field name made lowercase.
+    saldo = models.DecimalField(max_digits=15, decimal_places=2)
+    cantidadtarjetas = models.IntegerField(db_column='cantidadTarjetas')  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'tarjetadecredito'
+
+
+class Tipodecliente(models.Model):
+    codigotipocliente = models.AutoField(db_column='codigoTipoCliente', primary_key=True)  # Field name made lowercase.
+    nombre = models.CharField(max_length=50)
+
+    class Meta:
+        managed = False
+        db_table = 'tipodecliente'
+
+
 class Tipoempresa(models.Model):
     idtipoempresa = models.AutoField(db_column='idTipoEmpresa', primary_key=True)  # Field name made lowercase.
     nombre = models.CharField(max_length=50)
@@ -98,7 +255,7 @@ class Tipoempresa(models.Model):
     def __str__(self):
         # return '{} {}'.format(self.idtipoempresa, self.nombre)
         return '{}'.format(self.nombre)
-    
+
     class Meta:
         managed = False
         db_table = 'tipoempresa'

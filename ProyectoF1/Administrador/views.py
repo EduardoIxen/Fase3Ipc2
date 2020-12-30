@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.shortcuts import redirect
 from .forms import *
 import MySQLdb
-
+from .Calculos import *
 from .models import Empresa
 
 host = 'localhost'
@@ -31,7 +31,7 @@ def registroCliente(request):
             contrasenia = datos.get('contrasenia')
             db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
             cursor = db.cursor()
-            consulta = "INSERT INTO ClienteIndividual VALUES("+str(cui)+",'"+nit+"','"+nombreCompleto+"', '"+str(fechaNacimiento)+"', '"+usuario+"', '"+contrasenia+"')"
+            consulta = "INSERT INTO ClienteIndividual VALUES("+str(cui)+",'"+str(nit)+"','"+nombreCompleto+"', '"+str(fechaNacimiento)+"', '"+usuario+"', '"+contrasenia+"')"
             #print(consulta)
             cursor.execute(consulta)
             db.commit()
@@ -140,12 +140,15 @@ def addCuentaMonetaria(request):
             saldo = datos.get('saldo')
             tipoCliente = datos.get('tipocliente')
             idCliente = datos.get('idcliente')
+            idMoneda = datos.get('codigomoneda')
+            print(idMoneda)
+            print(type(idMoneda))
 
             db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
 
             cursor = db.cursor()
             cursor2 = db.cursor()
-            consulta = "INSERT INTO CuentaMonetaria VALUES(" + str(codigoCuenta) + "," + str(
+            consulta = "INSERT INTO CuentaMonetaria VALUES(" + str(codigoCuenta) + ","+idMoneda+"," + str(
                 montoPorManejo) + "," + str(saldo) + ")"
             print(consulta)
             cursor.execute(consulta)
@@ -220,6 +223,7 @@ def addCuentaDeAhorro(request):
             saldo = datos.get('saldo')
             tipoCliente = datos.get('tipocliente')
             idCliente = datos.get('idcliente')
+            codigoMoneda = datos.get('codigomoneda')
             print(f"{type(tipoCliente)}, id {type(idCliente)}")
             db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
             cursor = db.cursor()
@@ -233,7 +237,7 @@ def addCuentaDeAhorro(request):
                     if not cuenta3:
                        pasa = True
             if pasa:
-                consulta = "INSERT INTO CuentaDeAhorro VALUES(" + str(codigoCuenta) + "," + str(
+                consulta = "INSERT INTO CuentaDeAhorro VALUES(" + str(codigoCuenta) + ","+codigoMoneda+"," + str(
                     tasainteres) + "," + str(saldo) + ")"
                 print(consulta)
                 cursor.execute(consulta)
@@ -316,11 +320,12 @@ def addCuentaPlazoFijo(request):
             saldo = datos.get('saldo')
             tipoCliente = datos.get('tipocliente')
             idCliente = datos.get('idcliente')
+            codigoMoneda = datos.get('codigomoneda')
             print(f"{type(tipoCliente)}, id {type(idCliente)}")
             db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
             cursor = db.cursor()
             cursor2 = db.cursor()
-            consulta = "INSERT INTO CuentaPlazoFijo VALUES(" + str(codigoCuenta) + "," + str(
+            consulta = "INSERT INTO CuentaPlazoFijo VALUES(" + str(codigoCuenta) + ","+codigoMoneda+"," + str(
                 tasainteres) + ","+str(periodoTiempo)+" ," + str(saldo) + ")"
             print(consulta)
             cursor.execute(consulta)
@@ -377,3 +382,215 @@ def addCuentaPlazoFijo(request):
                 'mensaje': mensaje
             }
     return render(request, "addCuentaPlazoFijo.html", variables)
+
+def crearTarjeta(request):
+    form2 = ConsultarTarjetaClientes()
+    variables = {
+        'cons': form2
+    }
+    if request.method == "POST":
+        form2 = ConsultarTarjetaClientes(data=request.POST)
+        if form2.is_valid():
+            datos = form2.cleaned_data
+            idCliente = datos.get('idCliente')
+            marcaRango = datos.get('marca')
+            monedaDec = datos.get('codigomoneda')
+            tipoCliente = 0
+            consCliente = Clienteindividual.objects.filter(cui=idCliente).values_list()
+            consEmpresa = Empresa.objects.filter(idempresa=idCliente).values_list()
+
+            if consCliente:
+                tipoCliente = '1'  #cliente individual
+                consultarTarjeta = Tarjetadecredito.objects.filter(cuicliente=idCliente).values_list()
+                if consultarTarjeta:
+                    lsCuentas = Detalleclientecuenta.objects.filter(codigocliente=idCliente).filter(
+                        codigocuentamonetaria__isnull=False).values_list()  # codigo cuenta no sea null
+                    lista = []
+                    for numeroCuenta in lsCuentas:
+                        lista.append((numeroCuenta[3], numeroCuenta[3]))
+                    numeroTarjeta  = len(consultarTarjeta)
+                    calc = Calculos()
+                    maximo2,minimo2 = calc.limiteCredito(marcaRango, tipoCliente, monedaDec, numeroTarjeta)
+                    listaMarca = []
+                    if marcaRango == '1':
+                        listaMarca.append(('1', "PREFEPUNTOS"))
+                    else:
+                        listaMarca.append(('2', "CASHBACK"))
+                    listaMoneda = []
+                    if monedaDec == '1':
+                        listaMoneda.append(('1', "Quetzal"))
+                    else:
+                        listaMoneda.append(('2', "Dolar"))
+
+                    if monedaDec == '1':
+                        form = Tarjeta(lista, listaMarca, listaMoneda, maximo2, minimo2, "Q")
+                    elif monedaDec == '2':
+                        form = Tarjeta(lista, listaMarca, listaMoneda, maximo2, minimo2, "$")
+
+                    variables = {
+                        'form': form,
+                        'cons': form2,
+                        'lista': consultarTarjeta
+                    }
+                else:
+                    lsCuentas = Detalleclientecuenta.objects.filter(codigocliente=idCliente).filter(
+                        codigocuentamonetaria__isnull=False).values_list()  # verificar si tiene cuentas monetarias
+                    lista = []
+                    if len(lsCuentas) != 0:
+                        for numCuenta in lsCuentas:
+                            lista.append((numCuenta[3], numCuenta[3]))
+                    else:
+                        lista.append(
+                            ("No posee cuentas monetarias", "No posee cuentas monetarias"))  # mostrar en el select
+
+                    numeroTarjeta = len(consultarTarjeta)
+                    calc = Calculos()
+                    maximo, minimo = calc.limiteCredito(marcaRango, tipoCliente, monedaDec, numeroTarjeta)
+
+                    listaMarca = []
+                    if marcaRango == '1':
+                        listaMarca.append(('1', "PREFEPUNTOS"))
+                    else:
+                        listaMarca.append(('2', "CASHBACK"))
+                    listaMoneda = []
+                    if monedaDec == '1':
+                        listaMoneda.append(('1', "Quetzal"))
+                    else:
+                        listaMoneda.append(('2', "Dolar"))
+
+                    if monedaDec == '1':
+                        form = Tarjeta(lista, listaMarca, listaMoneda, maximo, minimo, "Q")
+                    elif monedaDec == '2':
+                        form = Tarjeta(lista, listaMarca, listaMoneda, maximo, minimo, "$")
+                    variables = {
+                        'cons': form2,
+                        'mensaje': "No se encontraron registros de tarjetas",
+                        'form': form
+                    }
+            elif consEmpresa:
+                tipoCliente = '2'  #empresa
+                consultarTarjeta = Tarjetadecredito.objects.filter(idempresa=idCliente).values_list()
+                if consultarTarjeta:
+                    lsCuentas = Detalleclientecuenta.objects.filter(idempresa=idCliente).filter(codigocuentamonetaria__isnull=False).values_list() #codigo cuenta no sea null
+                    lista = []
+                    for numCuenta in lsCuentas:
+                        lista.append((numCuenta[3], numCuenta[3]))
+
+                    numeroTarjeta  = len(consultarTarjeta)
+                    calc = Calculos()
+                    maximo2,minimo2 = calc.limiteCredito(marcaRango, tipoCliente, monedaDec, numeroTarjeta)
+
+                    listaMarca = []
+                    if marcaRango == '1':
+                        listaMarca.append(('1', "PREFEPUNTOS"))
+                    else:
+                        listaMarca.append(('2', "CASHBACK"))
+                    listaMoneda = []
+                    if monedaDec == '1':
+                        listaMoneda.append(('1', "Quetzal"))
+                    else:
+                        listaMoneda.append(('2', "Dolar"))
+
+                    if monedaDec == '1':
+                        form = Tarjeta(lista, listaMarca, listaMoneda, maximo2, minimo2, "Q")
+                    elif monedaDec == '2':
+                        form = Tarjeta(lista, listaMarca, listaMoneda, maximo2, minimo2, "$")
+
+                    variables={
+                        'form': form,
+                        'cons': form2,
+                        'lista': consultarTarjeta
+                    }
+                else:  #no tiene tarjetas registradas
+                    lsCuentas = Detalleclientecuenta.objects.filter(idempresa=idCliente).filter(codigocuentamonetaria__isnull=False).values_list() #verificar si tiene cuentas monetarias
+                    lista = []
+                    if len(lsCuentas) != 0:
+                        for numCuenta in lsCuentas:
+                            lista.append((numCuenta[3], numCuenta[3]))
+                    else:
+                        lista.append(("No posee cuentas monetarias", "No posee cuentas monetarias")) #mostrar en el select
+                    #maximo = 0
+                    #minimo = 0
+                    numeroTarjeta  = len(consultarTarjeta)
+                    calc = Calculos()
+                    maximo,minimo = calc.limiteCredito(marcaRango, tipoCliente, monedaDec, numeroTarjeta)
+
+                    listaMarca = []
+                    if marcaRango == '1':
+                        listaMarca.append(('1', "PREFEPUNTOS"))
+                    else:
+                        listaMarca.append(('2', "CASHBACK"))
+                    listaMoneda = []
+                    if monedaDec == '1':
+                        listaMoneda.append(('1', "Quetzal"))
+                    else:
+                        listaMoneda.append(('2', "Dolar"))
+
+                    if monedaDec == '1':
+                        form = Tarjeta(lista, listaMarca, listaMoneda, maximo, minimo, "Q")
+                    elif monedaDec == '2':
+                        form = Tarjeta(lista, listaMarca, listaMoneda, maximo, minimo, "$")
+                    variables = {
+                        'cons': form2,
+                        'mensaje': "No se encontraron registros de tarjetas",
+                        'form': form
+                    }
+            else:
+                variables = {
+                    'cons': form2,
+                    'invalidUsr': "Usuario inexistente",
+                }
+        if request.method == 'POST':
+            print("Entro al pooost")
+            form = Tarjeta("","","",None,None,"",data=request.POST)
+            if form.is_valid():
+                print("validooooo")
+                datos = form.cleaned_data
+                numeroTarjeta = datos.get('numeroTarjeta')
+                marca = datos.get('marca')
+                tipoCliente = datos.get('tipoCliente')
+                idCliente2 = datos.get('idCliente')
+                limiteCredito = datos.get('limiteCredito')
+                cantTarjeta = datos.get('cantidadTarjetas')
+                numeroCuenta = datos.get('numeroCuenta')
+                codigoMoneda = datos.get('moneda')
+                print("monedaaaaa", codigoMoneda)
+                print(idCliente2)
+                print("moneda tye", type(codigoMoneda))
+                print(type(idCliente2))
+                db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
+                cursor = db.cursor()
+                if tipoCliente == "1":
+                    if marca == "1":
+                        consulta = "INSERT INTO TarjetaDeCredito(numeroTarjeta, codigoMarca, codigoTipoCliente, cuiCliente," \
+                                   " puntos, limiteCredito, saldo, cantidadTarjetas, numeroCuenta, codigoMoneda) VALUES ("+str(numeroTarjeta)+", "+marca+\
+                                   ","+tipoCliente+","+str(idCliente2)+",0,"+str(limiteCredito)+", 0, "+cantTarjeta+", "+numeroCuenta+", "+str(codigoMoneda)+")"
+                    else:
+                        consulta = "INSERT INTO TarjetaDeCredito(numeroTarjeta, codigoMarca, codigoTipoCliente, cuiCliente," \
+                                   " cashback, limiteCredito, saldo, cantidadTarjetas, numeroCuenta, codigoMoneda) VALUES ("+str(numeroTarjeta)+", "+marca+\
+                                   ","+tipoCliente+","+str(idCliente2)+",0,"+str(limiteCredito)+", 0, "+cantTarjeta+", "+numeroCuenta+", "+str(codigoMoneda)+")"
+                else:
+                    if marca == "1":
+                        consulta = "INSERT INTO TarjetaDeCredito(numeroTarjeta, codigoMarca, codigoTipoCliente, idEmpresa, " \
+                               "puntos, limiteCredito, saldo, cantidadTarjetas, numeroCuenta, codigoMoneda) VALUES ("+str(numeroTarjeta)+", "+marca+\
+                                   ","+tipoCliente+","+str(idCliente2)+",0,"+str(limiteCredito)+", 0, "+cantTarjeta+", "+numeroCuenta+", "+str(codigoMoneda)+")"
+                    else:
+                        consulta = "INSERT INTO TarjetaDeCredito(numeroTarjeta, codigoMarca, codigoTipoCliente, idEmpresa, " \
+                               "cashback, limiteCredito, saldo, cantidadTarjetas, numeroCuenta, codigoMoneda) VALUES ("+str(numeroTarjeta)+", "+marca+\
+                                   ","+tipoCliente+","+str(idCliente2)+",0,"+str(limiteCredito)+", 0, "+cantTarjeta+", "+numeroCuenta+", "+str(codigoMoneda)+")"
+                print(consulta)
+                cursor.execute(consulta)
+                db.commit()
+                cursor.close()
+
+                form2 = ConsultarTarjetaClientes()
+                variables = {
+                    'cons': form2,
+                    'mensaje': "Tarjeta registrada correctamente"
+                }
+            else:
+                print("forn no valido")
+
+
+    return render(request, 'creartarjeta.html', variables)
+

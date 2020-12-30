@@ -26,4 +26,5 @@ urlpatterns = [
     path('addCuentaMonetaria/', views.addCuentaMonetaria, name="addCuentaMonetaria"),
     path('addCuentaAhorro/', views.addCuentaDeAhorro, name="addCuentaAhorro"),
     path('addcuentaplazofijo/', views.addCuentaPlazoFijo, name="addCuentaPlazoFijo"),
+    path('creartarjeta/', views.crearTarjeta, name="creartarjeta"),
 ]

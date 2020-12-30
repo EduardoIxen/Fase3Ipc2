@@ -1,0 +1,61 @@
+{% extends 'baseAdmin.html' %}
+{% block content %}
+    <form method="post" class="formulario">
+        {{ cons.as_p }}
+        {% csrf_token %}
+        <button type="submit" class="btnSubmit"> Consultar tarjetas</button>
+    </form>
+    <br>
+    <h1 class="error">{{ invalidUsr }}</h1>
+    <h1> {{ mensaje }}</h1>
+    {% if lista  %}
+        <table class="tabla1">
+            <tr>
+                <th>No.</th>
+                <th>Numero de tarjeta</th>
+                <th>Marca</th>
+                <th>Limite de credito</th>
+                <th>Moneda</th>
+            </tr>
+            {% with contador=count  %}
+                {% for tarjeta in lista %}
+                    <tr>
+                        <td>{{ forloop.counter|add:"0" }}</td>
+                        <td>{{ tarjeta.0 }}</td>
+                        {% if tarjeta.1 == 1 %}
+                            <td>PREFEPUNTOS</td>
+                        {% else %}
+                            <td>CASHBACK</td>
+                        {% endif %}
+                        <td>{{ tarjeta.9 }}</td>
+                        {% if tarjeta.5 == 1 %}
+                            <td>Quetzal</td>
+                        {% else %}
+                            <td>Dolar</td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+            {% endwith %}
+        </table>
+        <hr>
+        {% if lista.count < 3 %}
+            <form method="post" class="formulario">
+                {{ form.as_p }}
+                {% csrf_token %}
+                <button type="submit" class="btnSubmit"> Registrar Tarjeta</button>
+            </form>
+            {% else %}
+                <h1>Limite de tarjetas alcanzado</h1>
+        {% endif %}
+        {% else %}
+            {% if mensaje == "No se encontraron registros de tarjetas" %}
+                <h1>{{ mensaje }}</h1>
+                <form method="post" class="formulario">
+                    {{ form.as_p }}
+                    {% csrf_token %}
+
+                        <button type="submit" class="btnSubmit"> Registrar Tarjeta</button>
+                </form>
+            {% endif %}
+    {% endif %}
+{% endblock %}
