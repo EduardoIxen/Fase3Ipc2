@@ -175,6 +175,19 @@ class Detalleclientecuenta(models.Model):
         db_table = 'detalleclientecuenta'
 
 
+class Detalleplanilla(models.Model):
+    codigodetalle = models.AutoField(db_column='codigoDetalle', primary_key=True)  # Field name made lowercase.
+    codigoplanilla = models.ForeignKey('Planilla', models.DO_NOTHING, db_column='codigoPlanilla')  # Field name made lowercase.
+    numerocuenta = models.BigIntegerField(db_column='numeroCuenta', blank=True, null=True)  # Field name made lowercase.
+    nombre = models.CharField(max_length=100, blank=True, null=True)
+    sueldo = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
+    formapago = models.CharField(db_column='formaPago', max_length=100, blank=True, null=True)  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'detalleplanilla'
+
+
 class DjangoAdminLog(models.Model):
     action_time = models.DateTimeField()
     object_id = models.TextField(blank=True, null=True)
@@ -228,10 +241,6 @@ class Empresa(models.Model):
     usuario = models.CharField(max_length=50)
     contrasenia = models.CharField(max_length=100)
 
-    def __str__(self):
-        # return '{} {}'.format(self.idtipoempresa, self.nombre)
-        return '{}'.format(self.nombre)
-
     class Meta:
         managed = False
         db_table = 'empresa'
@@ -240,10 +249,6 @@ class Empresa(models.Model):
 class Marca(models.Model):
     codigomarca = models.AutoField(db_column='codigoMarca', primary_key=True)  # Field name made lowercase.
     nombre = models.CharField(max_length=50)
-
-    def __str__(self):
-        # return '{} {}'.format(self.idtipoempresa, self.nombre)
-        return '{}'.format(self.nombre)
 
     class Meta:
         managed = False
@@ -257,6 +262,16 @@ class Moneda(models.Model):
     class Meta:
         managed = False
         db_table = 'moneda'
+
+
+class Planilla(models.Model):
+    codigoplanilla = models.AutoField(db_column='codigoPlanilla', primary_key=True)  # Field name made lowercase.
+    nombre = models.CharField(max_length=100)
+    idempresa = models.ForeignKey(Empresa, models.DO_NOTHING, db_column='idEmpresa')  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'planilla'
 
 
 class Prestamo(models.Model):
@@ -294,10 +309,6 @@ class Tipodecliente(models.Model):
     codigotipocliente = models.AutoField(db_column='codigoTipoCliente', primary_key=True)  # Field name made lowercase.
     nombre = models.CharField(max_length=50)
 
-    def __str__(self):
-        # return '{} {}'.format(self.idtipoempresa, self.nombre)
-        return '{}'.format(self.nombre)
-
     class Meta:
         managed = False
         db_table = 'tipodecliente'
@@ -308,10 +319,6 @@ class Tipoempresa(models.Model):
     nombre = models.CharField(max_length=50)
     descripcion = models.CharField(max_length=255, blank=True, null=True)
 
-    def __str__(self):
-        # return '{} {}'.format(self.idtipoempresa, self.nombre)
-        return '{}'.format(self.nombre)
-
     class Meta:
         managed = False
         db_table = 'tipoempresa'
@@ -320,7 +327,7 @@ class Tipoempresa(models.Model):
 class Transacciontarjeta(models.Model):
     codigotransaccion = models.AutoField(db_column='codigoTransaccion', primary_key=True)  # Field name made lowercase.
     numerotarjeta = models.ForeignKey(Tarjetadecredito, models.DO_NOTHING, db_column='numeroTarjeta')  # Field name made lowercase.
-    codigomoneda = models.ForeignKey(Moneda, models.DO_NOTHING, db_column='codigoMoneda')  # Field name made lowercase.
+    codigomoneda = models.ForeignKey(Moneda, models.DO_NOTHING, db_column='codigoMoneda', blank=True, null=True)  # Field name made lowercase.
     fecha = models.DateField(blank=True, null=True)
     descipcion = models.CharField(max_length=255, blank=True, null=True)
     monto = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
@@ -328,26 +335,3 @@ class Transacciontarjeta(models.Model):
     class Meta:
         managed = False
         db_table = 'transacciontarjeta'
-
-
-class Planilla(models.Model):
-    codigoplanilla = models.AutoField(db_column='codigoPlanilla', primary_key=True)  # Field name made lowercase.
-    nombre = models.CharField(max_length=100)
-    idempresa = models.ForeignKey(Empresa, models.DO_NOTHING, db_column='idEmpresa')  # Field name made lowercase.
-
-    class Meta:
-        managed = False
-        db_table = 'planilla'
-
-
-class Detalleplanilla(models.Model):
-    codigodetalle = models.AutoField(db_column='codigoDetalle', primary_key=True)  # Field name made lowercase.
-    codigoplanilla = models.ForeignKey('Planilla', models.DO_NOTHING, db_column='codigoPlanilla')  # Field name made lowercase.
-    numerocuenta = models.BigIntegerField(db_column='numeroCuenta', blank=True, null=True)  # Field name made lowercase.
-    nombre = models.CharField(max_length=100, blank=True, null=True)
-    sueldo = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    formapago = models.CharField(db_column='formaPago', max_length=100, blank=True, null=True)  # Field name made lowercase.
-
-    class Meta:
-        managed = False
-        db_table = 'detalleplanilla'

@@ -1,0 +1,10 @@
+{% extends "baseEmpresa.html" %}
+{% block content %}
+    <h1>Agregar empleado a planillaa</h1>
+    <form class="formulario" method="post">
+        {{ form.as_p }}
+        {% csrf_token %}
+        <button type="submit" class="btnSubmit"> Agregar empleado </button>
+    </form>
+    <h1>{{ mensaje }}</h1>
+{% endblock %}

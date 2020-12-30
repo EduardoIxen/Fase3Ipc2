@@ -29,3 +29,5 @@ class Compra(forms.Form):
         self.fields['fecha'] = forms.DateField(initial=datetime.date.today(), label='Fecha')
         self.fields['descripcion'] = forms.CharField(required=True, label="Descripcion")
         self.fields['cantidad'] = forms.IntegerField(required=True, label="Cantidad")
+    class Meta:
+        fields = ('numeroTarjeta', 'fecha', 'descripcion', 'cantidad')

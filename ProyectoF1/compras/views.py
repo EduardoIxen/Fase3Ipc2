@@ -235,6 +235,8 @@ def detalleProducto(request):
                 cursor.close()
 
                 #puntos o cashback
+                puntosObtenidos = 0
+                cashBack = 0
                 if marcaTarjeta == 1: # prefepuntos
                     if total > 0.01 and total < 100.00:
                         puntosObtenidos = total * 0

@@ -1,3 +1,4 @@
+import MySQLdb
 from django.shortcuts import render
 from django.shortcuts import redirect
 from django.http import HttpResponseRedirect
@@ -5,6 +6,11 @@ from django.urls import reverse
 from .forms import *
 # Create your views here.
 
+host = 'localhost'
+db_name = 'Proyecto'
+user = 'root'
+contra = 'admin'
+puerto = 3306
 
 def login(request):
     mensaje = ""
@@ -47,16 +53,18 @@ def login(request):
             nombreComercial = empresaLogueada[0][3]
             representante = empresaLogueada[0][4]
             usuarioL = empresaLogueada[0][5]
+            passL = empresaLogueada[0][6]
             dicSession = {
                 'idEmpresa': idEmpresa,
                 'tipoEmpresa': tipoEmpresa,
                 'nombre': nombre,
                 'nombreComercial': nombreComercial,
                 'representante': representante,
-                'usuarioL': usuarioL
+                'usuarioL': usuarioL,
+                'pass': passL
             }
             request.session['datos'] = dicSession
-            return redirect('infousr')
+            return redirect('infoempresa')
         else:
             mensaje = "Usuario o contraseña incorrectos"
 
@@ -82,6 +90,11 @@ def estadoDeCeunta(request):
 def infoUsr(request):
     diccSession = request.session['datos']
     return render(request, "infoUsr.html", diccSession)
+
+
+def infoEmpresa(request):
+    diccSession = request.session['datos']
+    return render(request, "infoEmpresa.html", diccSession)
 
 
 def logout(request):
@@ -172,3 +185,92 @@ def tarjeta(request):
                 'listaTransaccion': listaTransacciones
             }
     return render(request, "tarjetas.html", variables)
+
+
+def registroPlanilla(request):
+    dicEmpresa = request.session['datos']
+    idEmpresa = dicEmpresa.get('idEmpresa')
+    print(idEmpresa)
+    form = RegistroPlanilla()
+    variables = {
+        'form': form
+    }
+    if request.method == "POST":
+        form = RegistroPlanilla(data=request.POST)
+        if form.is_valid():
+            datos = form.cleaned_data
+            nombrePl = datos.get('nombre')
+
+            db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
+            cursor = db.cursor()
+            consulta = "INSERT INTO Planilla(nombre, idEmpresa) values('"+nombrePl+"', "+str(idEmpresa)+")"
+            cursor.execute(consulta)
+            db.commit()
+            cursor.close()
+            mensaje = f"Planilla {nombrePl} creada correctamente"
+            form = RegistroPlanilla()
+            variables = {
+                'mensaje': mensaje,
+                'form': form
+            }
+    return render(request, "registroPlanilla.html", variables)
+
+
+def addEmpleadoPlanilla(request):
+    dicEmpresa = request.session['datos']
+    idEmpresa = dicEmpresa.get('idEmpresa')
+    print(idEmpresa)
+    obtenerPlanillas = Planilla.objects.filter(idempresa=idEmpresa).values_list()
+    listaPlanillas = []
+    if len(obtenerPlanillas) > 0:
+        for planilla in obtenerPlanillas:
+            listaPlanillas.append((planilla[0], planilla[1]))
+    else:
+        listaPlanillas.append(("No hay planillas", "No hay planillas"))
+    print(listaPlanillas)
+
+    form = IngresoUsuarioPlanilla(listaPlanillas)
+    variables = {
+        'form': form,
+    }
+    if request.method == "POST":
+        form = IngresoUsuarioPlanilla(listaPlanillas, data=request.POST)
+        if form.is_valid():
+            datos = form.cleaned_data
+            cuenta = datos.get('numeroCuentaEmpleado')
+            nombre = datos.get('nombre')
+            sueldo = datos.get('sueldo')
+            formaPago = datos.get('formaPago')
+            idPlanilla = datos.get('planilla')
+            print(cuenta)
+            print(nombre)
+            print(sueldo)
+            print(formaPago)
+            print(idPlanilla)
+            cuentaMon = Cuentamonetaria.objects.filter(codigocuenta=cuenta).values_list()
+            cuentaAho = Cuentadeahorro.objects.filter(codigocuenta=cuenta).values_list()
+            cuentaPlaz = Cuentaplazofijo.objects.filter(codigocuenta=cuenta).values_list()
+            if cuentaMon or cuentaAho or cuentaPlaz:
+                print("si existe la cuenta")
+                db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
+                cursor = db.cursor()
+                consulta = "INSERT INTO DetallePlanilla(codigoPlanilla, numeroCuenta, nombre, sueldo, formaPago) values" \
+                           "(" + str(idPlanilla) + ", " + str(cuenta) + ", '" + nombre + "', " + str(
+                    sueldo) + ", '" + formaPago + "')"
+                print(consulta)
+                cursor.execute(consulta)
+                db.commit()
+                cursor.close()
+                mensaje = "Empleado agregado correctamente"
+                form = IngresoUsuarioPlanilla(listaPlanillas)
+                variables = {
+                    'mensaje': mensaje,
+                    'form': form,
+                }
+            else:
+                mensaje = "No existe la cuenta ingresada"
+                variables = {
+                    'mensaje': mensaje,
+                    'form': form,
+                }
+    return render(request, "addEmpleadoPlanilla.html", variables)

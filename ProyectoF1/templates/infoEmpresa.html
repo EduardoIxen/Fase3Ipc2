@@ -1,0 +1,25 @@
+{% extends "baseEmpresa.html" %}
+{% block content %}
+    <h1>Informacion del usuario</h1
+    <div class="datos">
+    {% if cui %}
+        <ul class="datos">
+            <li>CUI: {{ cui }}</li>
+            <li>NIT: {{ nit }}</li>
+            <li>NOMBRE: {{ nombre }}</li>
+            <li>Usuario: {{ usuario }}</li>
+        </ul>
+        {% elif idEmpresa %}
+            <ul class="datos">
+                <li>ID Empresa: {{ idEmpresa }}</li>
+                <li>Tipo Empresa: {{ tipoEmpresa }}</li>
+                <li>Nombre: {{ nombre }}</li>
+                <li>Nombre comercial: {{ nombreComercial }}</li>
+                <li>Representante legal: {{ representante }}</li>
+                <li>Usuario: {{ usuarioL }}</li>
+            </ul>
+    {% endif %}
+    </div>
+
+
+{% endblock %}

@@ -8,8 +8,18 @@
 </head>
 <body>
     <div class="navbar">
-        <a href="{% url 'infousr' %}">Home</a>
+        <a href="{% url 'infoempresa' %}">Home</a>
         <a href="{% url 'tarjeta' %}">Tarjetas</a>
+        <div class="dropdown">
+            <button class="dropbtn">Planillas
+                <i class="fa fa-caret-down"></i>
+            </button>
+            <div class="dropdown-content">
+                <a href=" {% url 'registroplanilla' %}">Registro de planillas</a>
+                <a href="{% url 'addempleadoplanilla' %}">Agregar empleado a planilla</a>
+                <a href="#">Pago de proveedores</a>
+            </div>
+        </div>
         <a id="logout" href="{% url 'logout' %}">Salir</a>
     </div>
     {% block content %}
