@@ -29,22 +29,32 @@ create table Administrador(
     usuario varchar(100) not null,
     contrasenia varchar(100) not null
 );
+create table Moneda(
+	codigoMoneda int auto_increment primary key,
+    nombre varchar(50) not null
+);
 create table CuentaMonetaria(
 	codigoCuenta bigint primary key not null,
+    codigoMoneda int not null,
     montoPorManejo numeric(5,2),
-    saldo numeric(15,2) not null
+    saldo numeric(15,2) not null,
+    foreign key(codigoMoneda) references Moneda(codigoMoneda)
 );
 
 create table CuentaDeAhorro(
 	codigoCuenta bigint primary key not null,
+    codigoMoneda int not null,
     tasaInteres int not null,
-    saldo numeric(15,2) not null
+    saldo numeric(15,2) not null,
+    foreign key(codigoMoneda) references Moneda(codigoMoneda)
 );
 create table CuentaPlazoFijo(
 	codigoCuenta bigint primary key not null,
+    codigoMoneda int not null,
     tasaInteres int not null,
     periodoDeTiempo int not null,
-    saldo numeric(15,2) not null
+    saldo numeric(15,2) not null,
+    foreign key(codigoMoneda) references Moneda(codigoMoneda)
 );
 
 create table DetalleClienteCuenta(
@@ -61,6 +71,7 @@ create table DetalleClienteCuenta(
     foreign key(codigoCuentaAhorro) references CuentaDeAhorro(codigoCuenta),
     foreign key(codigoCuentaPlazoFijo) references CuentaPlazoFijo(codigoCuenta)
 );
+
 create table Chequera(
 	codigoChequera int primary key auto_increment ,
     cantidadDeCheques numeric(2,0) not null,
@@ -82,25 +93,24 @@ create table AutorizacionCheque(
     foreign key(cui) references ClienteIndividual(cui),
     foreign key(codigoCuenta) references CuentaMonetaria(codigoCuenta)
 );
+
 create table Planilla(
 	codigoPlanilla int primary key auto_increment,
-    periodoPago numeric(2,0) not null,
+    nombre varchar(100) not null,
     idEmpresa bigint not null,
     foreign key(idEmpresa) references Empresa(idEmpresa)
 );
-create table EmpleadoProveedor(
-	codigoEmpleado bigint,
-    codigoPlanilla int,
-    montoPagar numeric(10,2) not null,
-	codigoCuentaMonetaria bigint null,
-    codigoCuentaAhorro bigint null,
-    codigoCuentaPlazoFijo bigint null,
-    primary key(codigoEmpleado, codigoPlanilla),
-    foreign key(codigoPlanilla) references Planilla(CodigoPlanilla),
-	foreign key(codigoCuentaMonetaria) references CuentaMonetaria(codigoCuenta),
-    foreign key(codigoCuentaAhorro) references CuentaDeAhorro(codigoCuenta),
-    foreign key(codigoCuentaPlazoFijo) references CuentaPlazoFijo(codigoCuenta)
+
+create table DetallePlanilla(
+	codigoDetalle int auto_increment primary key,
+    codigoPlanilla int not null,
+    numeroCuenta bigint,
+    nombre varchar(100),
+    sueldo numeric(15,2),
+    formaPago varchar(100),
+    foreign key(codigoPlanilla) references Planilla(codigoPlanilla)
 );
+
 create table Prestamo(
 	codigoPrestamo int primary key auto_increment,
     montoRequerido numeric(15,2) not null,
@@ -110,9 +120,52 @@ create table Prestamo(
     foreign key(codigoCliente) references ClienteIndividual(cui),
     foreign key(idEmpresa) references Empresa(idEmpresa)
 );
+create table TipoDeCliente(
+	codigoTipoCliente int auto_increment primary key,
+    nombre varchar(50) not null
+);
+create table Marca(
+	codigoMarca int auto_increment primary key,
+    nombre varchar(50) not null
+);
+create table TarjetaDeCredito(
+	numeroTarjeta bigint primary key,
+    codigoMarca int not null,
+    codigoTipoCliente int not null,
+    cuiCliente bigint,
+    idEmpresa bigint,
+    codigoMoneda int,
+    numeroCuenta bigint,
+    puntos int,
+    cashback numeric(15,2),
+    limiteCredito numeric(15,2) not null,
+    saldo numeric(15,2) not null,
+    cantidadTarjetas int not null,
+    foreign key(codigoMarca) references Marca(codigoMarca),
+    foreign key(codigoTipoCliente) references TipoDeCliente(codigoTipoCliente),
+	foreign key(cuiCliente) references ClienteIndividual(cui),
+    foreign key(idEmpresa) references Empresa(idEmpresa),
+    foreign key(numeroCuenta) references CuentaMonetaria(codigoCuenta),
+    foreign key(codigoMoneda) references Moneda(codigoMoneda)
+);
+create table TransaccionTarjeta(
+	codigoTransaccion int auto_increment primary key,
+    numeroTarjeta bigint not null,
+    codigoMoneda int,
+    fecha date,
+    descipcion varchar(255),
+    monto numeric(15,2),
+    foreign key(numeroTarjeta) references TarjetaDeCredito(numeroTarjeta),
+    foreign key(codigoMoneda) references Moneda(codigoMoneda)
+);
 
 insert into TipoEmpresa(nombre, descripcion) values('Sociedad anonima', 'Descripcion pendiente');
 insert into TipoEmpresa(nombre, descripcion) values('Compañia limitada', 'Descripcion pendiente');
 insert into TipoEmpresa(nombre, descripcion) values('Empresa Individual', 'Descripcion pendiente');
-
+insert into Moneda(nombre) values ('Quetzal');
+insert into Moneda(nombre) values ('Dolar');
 insert into Administrador(usuario, contrasenia) value('admin','admin');
+insert into TipoDeCliente(nombre) values('Cliente Individual');
+insert into TipoDeCliente(nombre) values('Empresa');
+insert into Marca(nombre) values('PREFEPUNTOS');
+insert into Marca(nombre) values('CASHBACK');
