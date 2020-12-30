@@ -10,6 +10,7 @@
     <div class="navbar">
         <a href="{% url 'homecompras' %}">Home</a>
         <a id="logout" href="{% url 'logoutcomp' %}">Salir</a>
+        <a id="logout" href="#">{{ nombreUsr }}</a>
     </div>
     {% block content %}
         {#        contenido de las paginas que utilizan esta plantilla#}

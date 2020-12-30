@@ -5,7 +5,7 @@ import datetime
 class Cliente(forms.Form):
     cui = forms.IntegerField(required=True, label="CUI")
     nit = forms.IntegerField(required=True, label="NIT")
-    nombrecompleto = forms.CharField(required=True, label="Nombre del representante legal")
+    nombrecompleto = forms.CharField(required=True, label="Nombre")
     fechanacimiento = forms.DateField(initial=datetime.date.today())
     usuario = forms.CharField(required=True, label="Nombre de usuario")
     contrasenia = forms.CharField(required=True, label="Contraseña")

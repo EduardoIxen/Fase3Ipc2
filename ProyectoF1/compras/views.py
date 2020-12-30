@@ -81,6 +81,14 @@ def login(request):
     return render(request, "loginCompras.html", variables)
 
 def home(request):
+    dic = request.session['datos']
+    if dic.get('cui') != None:
+        idUsuario = dic.get('cui')
+        nombre = dic.get('nombre')
+    elif dic.get('idEmpresa') != None:
+        idUsuario = dic.get('idEmpresa')
+        nombre = dic.get('nombre')
+
     productos = [{'producto': 'Camisa', 'Precio': 125, 'Moneda': 'Quetzal', 'Descripcion': 'Camisa de maga larga, color gris sin bolsa en el pecho.'},
                  {'producto': 'Pantalon', 'Precio': 160, 'Moneda': 'Quetzal', 'Descripcion': 'Pantalon de mezclilla color azul, corte recto para hombre'},
                  {'producto': 'Zapato', 'Precio': 75, 'Moneda': 'Dolar', 'Descripcion': 'Zapato de cuero color negro, suela de goma sin cordones'},
@@ -96,7 +104,8 @@ def home(request):
     print(listaProd)
     form = consultarProducto(listaProd)
     variables = {
-        'form': form
+        'form': form,
+        'nombreUsr':nombre
     }
     if request.method == "POST":
         form = consultarProducto(listaProd,data=request.POST)
@@ -127,9 +136,10 @@ def detalleProducto(request):
     dic = request.session['datos']
     if dic.get('cui') != None:
         idUsuario = dic.get('cui')
+        nombre = dic.get('nombre')
     elif dic.get('idEmpresa') != None:
         idUsuario = dic.get('idEmpresa')
-
+        nombre = dic.get('nombre')
     #obtener producto
     dicProd = request.session['producto']
     producto = dicProd.get('producto')
@@ -164,7 +174,8 @@ def detalleProducto(request):
         'descripcion': descripcion,
         'direccion': direccion,
         'form': form,
-        'mensaje': mensaje
+        'mensaje': mensaje,
+        'nombreUsr': nombre
     }
     if request.method == 'POST':
         form = Compra(listaTarjetas, data=request.POST)
@@ -224,11 +235,61 @@ def detalleProducto(request):
                 cursor.close()
 
                 #puntos o cashback
-                if marcaTarjeta == 1: #
-                    print("puntos")
+                if marcaTarjeta == 1: # prefepuntos
+                    if total > 0.01 and total < 100.00:
+                        puntosObtenidos = total * 0
+                    elif total > 100.01 and total < 500.00:
+                        puntosObtenidos = total * 0.02
+                    elif total > 500.01 and total < 2000.00:
+                        puntosObtenidos = total * 0.04
+                    elif total > 2000.01:
+                        puntosObtenidos = total * 0.05
+                    if puntosObtenidos > 0:
+                        db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
+                        cursor = db.cursor()
+                        consulta = "UPDATE TarjetaDeCredito SET puntos="+str(puntosObtenidos)+" WHERE numeroTarjeta="+str(numeroTarjeta)+""
+                        print(consulta)
+                        cursor.execute(consulta)
+                        db.commit()
+                        cursor.close()
+                        #registar transaccion
+                        db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
+                        cursor = db.cursor()
+                        consulta = "INSERT INTO TransaccionTarjeta(numeroTarjeta, fecha, descipcion, monto) VALUES" \
+                                   "(" + str(numeroTarjeta) + ", '" + fecha2 + "', 'Puntos por: "+ descripcion + "', "+str(puntosObtenidos) + ")"
+                        print(consulta)
+                        cursor.execute(consulta)
+                        db.commit()
+                        cursor.close()
+                elif marcaTarjeta == 2: #cashback
+                    if total > 0.01 and total < 200.00:
+                        cashBack = total * 0
+                    elif total > 200.01 and total < 700.00:
+                        cashBack = total * 0.02
+                    elif total > 700.01:
+                        cashBack = total * 0.05
+                    if cashBack > 0:
+                        db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
+                        cursor = db.cursor()
+                        consulta = "UPDATE TarjetaDeCredito SET cashback="+str(cashBack)+" WHERE numeroTarjeta="+str(numeroTarjeta)+""
+                        print(consulta)
+                        cursor.execute(consulta)
+                        db.commit()
+                        cursor.close()
+
+                        #registar transaccion
+                        db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
+                        cursor = db.cursor()
+                        consulta = "INSERT INTO TransaccionTarjeta(numeroTarjeta,codigoMoneda ,fecha, descipcion, monto) VALUES" \
+                                   "(" + str(numeroTarjeta) + ","+str(monedaTarjeta)+" ,'" + fecha2 + "', 'Transaccion de cashback por: "+ descripcion + "', "+str(cashBack) + ")"
+                        print(consulta)
+                        cursor.execute(consulta)
+                        db.commit()
+                        cursor.close()
             else:
                 print(f"No cuenta con saldo suficiente {total} -- saldo {saldo}")
-                mensaje = "No cuenta con saldo suficiente"
+                mensaje = f"No cuenta con saldo suficiente: Saldo-> {saldo}   Total->{total}"
+                mensaje1 = "No saldo"
                 variables = {
                     'mensaje': mensaje,
                     'form': form,
@@ -237,6 +298,8 @@ def detalleProducto(request):
                     'moneda': moneda,
                     'descripcion': descripcion,
                     'direccion': direccion,
+                    'mensaje2': mensaje1,
+                    'nombreUsr': nombre
                 }
 
     return render(request, "detalleProducto.html", variables)

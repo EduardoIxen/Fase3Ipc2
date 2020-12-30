@@ -26,5 +26,8 @@
         {% else %}
             <h1 class="error">{{ mensaje }}</h1>
     {% endif %}
+    {% if mensaje2 == "No saldo" %}
+        <h1 class="error">{{ mensaje }}</h1>
+    {% endif %}
 
 {% endblock %}
