@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h1>Estado de tarjetas</h1>
+    <hr>
+    <form method="post" class="formulario">
+            {{ form.as_p }}
+            {% csrf_token %}
+        <button type="submit" class="btnSubmit">Consultar tarjeta</button>
+    </form>
+    <br>
+    <table class="tabla1">
+        <tr>
+            <th>Numero tarjeta</th>
+            <th>Numero de cuenta</th>
+            <th>Puntos</th>
+            <th>Saldo Q</th>
+            <th>Saldo $</th>
+        </tr>
+        <tr>
+            <td>{{ numeroTarjeta }}</td>
+            <td>{{ numeroCuenta }}</td>
+            <td>{{ puntos }}</td>
+            <td>{{ saldoQ }}</td>
+            <td>{{ saldoS }}</td>
+        </tr>
+    </table>
+{% endblock %}

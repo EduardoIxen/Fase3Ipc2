@@ -27,6 +27,14 @@
                 <a href="{% url 'registroempresa' %}">Registro Empresa</a>
             </div>
         </div>
+        <div class="dropdown">
+            <button class="dropbtn">Tarjeta
+                <i class="fa fa-caret-down"></i>
+            </button>
+            <div class="dropdown-content">
+                <a href="{% url 'creartarjeta' %}">Crear tarjeta</a>
+            </div>
+        </div>
         <a id="logout" href="{% url 'loginadmin' %}">Salir</a>
     </div>
     {% block content %}
