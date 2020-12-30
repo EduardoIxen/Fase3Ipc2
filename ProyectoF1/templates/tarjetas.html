@@ -30,4 +30,43 @@
         </tr>
     </table>
     {% endif %}
+    <br>
+    {% if listaTransaccion %}
+        <h1>Historial de la tarjeta</h1>
+        <table class="tabla1">
+            <tr>
+                <th>No.</th>
+                <th>Numero transaccion</th>
+                <th>Fecha</th>
+                <th>Descripcion</th>
+                <th>Moneda</th>
+                <th>Monto</th>
+            </tr>
+            {% with contador=count  %}
+                {% for transaccion in listaTransaccion %}
+                    <tr>
+                        <td>{{ forloop.counter|add:"0" }}</td>
+                        <td>{{ transaccion.0 }}</td>
+                        <td>{{ transaccion.3 }}</td>
+                        <td>{{ transaccion.4 }}</td>
+                        {% if transaccion.2 is not None %}
+                            {% if transaccion.2 == 1 %}
+                                <td>Quetzal</td>
+                            {% else %}
+                                <td>Dolar</td>
+                            {% endif %}
+                        {% else %}
+                            <td>-----</td>
+                        {% endif %}
+
+                        <td>{{ transaccion.5 }}</td>
+
+
+                    </tr>
+                {% endfor %}
+            {% endwith %}
+
+        </table>
+    {% endif %}
+
 {% endblock %}

@@ -127,6 +127,7 @@ def tarjeta(request):
             datos = form.cleaned_data
             numeroTarjeta = datos.get('numeroTarjeta')
             detalleTarjeta = Tarjetadecredito.objects.filter(numerotarjeta=numeroTarjeta).values_list()
+
             print(detalleTarjeta)
             saldoQ = 0
             saldoS = 0
@@ -157,6 +158,9 @@ def tarjeta(request):
                     saldoQ = f"{saldoQ:.2f}"
                     puntos = None
 
+            listaTransacciones = Transacciontarjeta.objects.filter(numerotarjeta=numeroTarjeta).values_list()
+            print(listaTransacciones)
+
             variables = {
                 'form': form,
                 'numeroTarjeta': detalleTarjeta[0][0],
@@ -164,6 +168,7 @@ def tarjeta(request):
                 'numeroCuenta': detalleTarjeta[0][6],
                 'puntos': puntos,
                 'saldoQ': saldoQ,
-                'saldoS': saldoS
+                'saldoS': saldoS,
+                'listaTransaccion': listaTransacciones
             }
     return render(request, "tarjetas.html", variables)
