@@ -328,12 +328,12 @@ def cargarCSV2(request):
             for registro in registrosCSV:
                 contador += 1
                 if contador > 1:
-                    print(registro['Nombre'])
+                    #print(registro['Nombre'])
                     db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
                     cursor = db.cursor()
                     consulta = "INSERT INTO DetallePlanilla(codigoPlanilla, numeroCuenta, nombre, sueldo) values(" + str(planilla) + ", " + str(
                         registro['Cuenta']) + ", '"+ registro['Nombre']+"', "+registro['Sueldo']+")"
-                    print(consulta)
+                    #print(consulta)
                     cursor.execute(consulta)
                     db.commit()
                     cursor.close()
