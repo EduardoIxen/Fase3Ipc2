@@ -1,0 +1,31 @@
+{% extends 'baseAdmin.html' %}
+{% block content %}
+    <h1>Solicitudes de prestamos pendientes</h1>
+    <table class="tabla1">
+        <tr>
+            <th>Codigo solicitud</th>
+            <th>Codigo cliente</th>
+            <th>Monto</th>
+            <th>Cuenta</th>
+            <th>Forma de pago</th>
+            <th>Descripcion</th>
+            <th>Aprobar</th>
+        </tr>
+        <tr>
+            {% for solicitud in lista %}
+                <td>{{ solicitud.0 }}</td>
+                {% if solicitud.3 == None %}
+                    <td>{{ solicitud.4 }}</td>
+                {% else %}
+                    <td>{{ solicitud.3 }}</td>
+                {% endif %}
+
+                <td>{{ solicitud.1 }}</td>
+                <td>{{ solicitud.6 }}</td>
+                <td>{{ solicitud.2 }}</td>
+                <td>{{ solicitud.5 }}</td>
+                <td><a href="/aprobar/{{ solicitud.0}}">Aprobar solicitud</a></td>
+            {% endfor %}
+        </tr>
+    </table>
+{% endblock %}

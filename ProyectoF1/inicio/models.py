@@ -265,10 +265,14 @@ class Prestamo(models.Model):
     modalidadapagar = models.DecimalField(db_column='modalidadAPagar', max_digits=2, decimal_places=0)  # Field name made lowercase.
     codigocliente = models.ForeignKey(Clienteindividual, models.DO_NOTHING, db_column='codigoCliente', blank=True, null=True)  # Field name made lowercase.
     idempresa = models.ForeignKey(Empresa, models.DO_NOTHING, db_column='idEmpresa', blank=True, null=True)  # Field name made lowercase.
+    descripcion = models.CharField(max_length=100, blank=True, null=True)
+    cuenta = models.BigIntegerField(blank=True, null=True)
+    aprobado = models.IntegerField(blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'prestamo'
+
 
 
 class Tarjetadecredito(models.Model):

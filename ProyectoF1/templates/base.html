@@ -11,6 +11,14 @@
         <a href="{% url 'infousr' %}">Home</a>
         <a href="{% url 'tarjeta' %}">Tarjetas</a>
         <a id="logout" href="{% url 'logout' %}">Salir</a>
+        <div class="dropdown">
+            <button class="dropbtn">Prestamos
+                <i class="fa fa-caret-down"></i>
+            </button>
+            <div class="dropdown-content">
+                <a href=" {% url 'solicitarprestamo' %}">Solicitud de prestamos</a>
+            </div>
+        </div>
     </div>
     {% block content %}
         {#        contenido de las paginas que utilizan esta plantilla#}

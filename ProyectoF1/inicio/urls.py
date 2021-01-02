@@ -21,7 +21,7 @@ urlpatterns = [
     path('', views.login),
     path('login/', views.login, name="login"),
     path('transferencia/', views.transferencia),
-    path('solicitudprestamo/', views.prestamo),
+    path('solicitudprestamo/', views.prestamo, name="solicitarprestamo"),
     path('estadodecuenta/', views.estadoDeCeunta),
     path('infousr/', views.infoUsr, name="infousr"),
     path('logout/', views.logout, name="logout"),

@@ -192,7 +192,7 @@ def detalleProducto(request):
             marcaTarjeta = tarjetaConsulta[0][1]
             monedaTarjeta = tarjetaConsulta[0][5]
 
-            if monetaTarjeta ==  1: #quetzal
+            if monetaTarjeta == 1: #quetzal
                 if moneda == "Quetzal":
                     total = precio * cantidad
                     print("total", total)
@@ -213,7 +213,7 @@ def detalleProducto(request):
 
             saldo = tarjetaConsulta[0][9] - tarjetaConsulta[0][10]
             print("saldo", saldo)
-            if total < saldo:
+            if total <= saldo:
                 #actualizar saldo
                 nuevoSaldo = float(tarjetaConsulta[0][10]) + total
                 db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
@@ -234,60 +234,183 @@ def detalleProducto(request):
                 db.commit()
                 cursor.close()
 
-                #puntos o cashback
-                puntosObtenidos = 0
-                cashBack = 0
-                if marcaTarjeta == 1: # prefepuntos
-                    if total > 0.01 and total < 100.00:
-                        puntosObtenidos = total * 0
-                    elif total > 100.01 and total < 500.00:
-                        puntosObtenidos = total * 0.02
-                    elif total > 500.01 and total < 2000.00:
-                        puntosObtenidos = total * 0.04
-                    elif total > 2000.01:
-                        puntosObtenidos = total * 0.05
-                    if puntosObtenidos > 0:
-                        db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
-                        cursor = db.cursor()
-                        consulta = "UPDATE TarjetaDeCredito SET puntos="+str(puntosObtenidos)+" WHERE numeroTarjeta="+str(numeroTarjeta)+""
-                        print(consulta)
-                        cursor.execute(consulta)
-                        db.commit()
-                        cursor.close()
-                        #registar transaccion
-                        db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
-                        cursor = db.cursor()
-                        consulta = "INSERT INTO TransaccionTarjeta(numeroTarjeta, fecha, descipcion, monto) VALUES" \
-                                   "(" + str(numeroTarjeta) + ", '" + fecha2 + "', 'Puntos por: "+ descripcion + "', "+str(puntosObtenidos) + ")"
-                        print(consulta)
-                        cursor.execute(consulta)
-                        db.commit()
-                        cursor.close()
-                elif marcaTarjeta == 2: #cashback
-                    if total > 0.01 and total < 200.00:
-                        cashBack = total * 0
-                    elif total > 200.01 and total < 700.00:
-                        cashBack = total * 0.02
-                    elif total > 700.01:
-                        cashBack = total * 0.05
-                    if cashBack > 0:
-                        db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
-                        cursor = db.cursor()
-                        consulta = "UPDATE TarjetaDeCredito SET cashback="+str(cashBack)+" WHERE numeroTarjeta="+str(numeroTarjeta)+""
-                        print(consulta)
-                        cursor.execute(consulta)
-                        db.commit()
-                        cursor.close()
+                if monetaTarjeta == 1: #Quetzal
+                    # puntos o cashback
+                    puntosObtenidos = 0
+                    cashBack = 0
+                    if marcaTarjeta == 1:  # prefepuntos
+                        if total > 0.01 and total < 100.00:
+                            puntosObtenidos = total * 0
+                        elif total > 100.01 and total < 500.00:
+                            puntosObtenidos = total * 0.02
+                        elif total > 500.01 and total < 2000.00:
+                            puntosObtenidos = total * 0.04
+                        elif total > 2000.01:
+                            puntosObtenidos = total * 0.05
+                        if puntosObtenidos > 0:
+                            obtenerTarjeta = []
+                            obtenerTarjeta = Tarjetadecredito.objects.filter(numerotarjeta=numeroTarjeta).values_list()
+                            puntosActuales = 0
+                            puntosActuales = obtenerTarjeta[0][7]
+                            totalPuntos = 0
+                            totalPuntos = puntosActuales + puntosObtenidos
 
-                        #registar transaccion
-                        db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
-                        cursor = db.cursor()
-                        consulta = "INSERT INTO TransaccionTarjeta(numeroTarjeta,codigoMoneda ,fecha, descipcion, monto) VALUES" \
-                                   "(" + str(numeroTarjeta) + ","+str(monedaTarjeta)+" ,'" + fecha2 + "', 'Transaccion de cashback por: "+ descripcion + "', "+str(cashBack) + ")"
-                        print(consulta)
-                        cursor.execute(consulta)
-                        db.commit()
-                        cursor.close()
+                            db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
+                            cursor = db.cursor()
+                            consulta = "UPDATE TarjetaDeCredito SET puntos=" + str(
+                                totalPuntos) + " WHERE numeroTarjeta=" + str(numeroTarjeta) + ""
+                            print(consulta)
+                            cursor.execute(consulta)
+                            db.commit()
+                            cursor.close()
+                            # registar transaccion
+                            db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
+                            cursor = db.cursor()
+                            consulta = "INSERT INTO TransaccionTarjeta(numeroTarjeta, fecha, descipcion, monto) VALUES" \
+                                       "(" + str(
+                                numeroTarjeta) + ", '" + fecha2 + "', 'Puntos por: " + descripcion + "', " + str(
+                                puntosObtenidos) + ")"
+                            # print(consulta)
+                            cursor.execute(consulta)
+                            db.commit()
+                            cursor.close()
+                    elif marcaTarjeta == 2:  # cashback
+                        if total >= 0.01 and total <= 200.00:
+                            cashBack = total * 0
+                        elif total >= 200.01 and total <= 700.00:
+                            cashBack = total * 0.02
+                        elif total >= 700.01:
+                            cashBack = total * 0.05
+                        if cashBack > 0:
+                            obtenerTarjeta = []
+                            obtenerTarjeta = Tarjetadecredito.objects.filter(numerotarjeta=numeroTarjeta).values_list()
+                            cashActual = obtenerTarjeta[0][8]
+                            cashTotal = 0
+                            cashTotal = float(cashActual) + cashBack
+                            print()
+                            db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
+                            cursor = db.cursor()
+                            consulta = "UPDATE TarjetaDeCredito SET cashback=" + str(
+                                cashTotal) + " WHERE numeroTarjeta=" + str(numeroTarjeta) + ""
+                            print(consulta)
+                            cursor.execute(consulta)
+                            db.commit()
+                            cursor.close()
+
+                            saldoActual = obtenerTarjeta[0][10]
+                            saldoTotal = float(saldoActual) - cashBack
+                            print("actual", saldoActual)
+                            print("nuevo", cashBack)
+                            print("total", saldoTotal)
+                            db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
+                            cursor = db.cursor()
+                            consulta = "UPDATE TarjetaDeCredito SET saldo=" + str(
+                                saldoTotal) + " WHERE numeroTarjeta=" + str(numeroTarjeta) + ""
+                            print(consulta)
+                            cursor.execute(consulta)
+                            db.commit()
+                            cursor.close()
+
+                            # registar transaccion
+                            db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
+                            cursor = db.cursor()
+                            consulta = "INSERT INTO TransaccionTarjeta(numeroTarjeta,codigoMoneda ,fecha, descipcion, monto) VALUES" \
+                                       "(" + str(numeroTarjeta) + "," + str(
+                                monedaTarjeta) + " ,'" + fecha2 + "', 'Transaccion de cashback por: " + descripcion + "', " + str(
+                                cashBack) + ")"
+                            print(consulta)
+                            cursor.execute(consulta)
+                            db.commit()
+                            cursor.close()
+                elif monetaTarjeta == 2: #Dolar
+                    # puntos o cashback
+                    puntosObtenidos = 0
+                    cashBack = 0
+                    if marcaTarjeta == 1:  # prefepuntos
+                        if total >= 0.01 and total <= 13.11:
+                            puntosObtenidos = total * 0
+                        elif total >= 13.12 and total <= 65.53:
+                            puntosObtenidos = total * 0.02
+                        elif total >= 65.54 and total <= 262.12:
+                            puntosObtenidos = total * 0.04
+                        elif total >= 262.13:
+                            puntosObtenidos = total * 0.05
+                        if puntosObtenidos > 0:
+                            obtenerTarjeta = []
+                            obtenerTarjeta = Tarjetadecredito.objects.filter(numerotarjeta=numeroTarjeta).values_list()
+                            puntosActuales = 0
+                            puntosActuales = obtenerTarjeta[0][7]
+                            totalPuntos = 0
+                            totalPuntos = puntosActuales + puntosObtenidos
+
+                            db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
+                            cursor = db.cursor()
+                            consulta = "UPDATE TarjetaDeCredito SET puntos=" + str(
+                                totalPuntos) + " WHERE numeroTarjeta=" + str(numeroTarjeta) + ""
+                            print(consulta)
+                            cursor.execute(consulta)
+                            db.commit()
+                            cursor.close()
+                            # registar transaccion
+                            db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
+                            cursor = db.cursor()
+                            consulta = "INSERT INTO TransaccionTarjeta(numeroTarjeta, fecha, descipcion, monto) VALUES" \
+                                       "(" + str(
+                                numeroTarjeta) + ", '" + fecha2 + "', 'Puntos por: " + descripcion + "', " + str(
+                                puntosObtenidos) + ")"
+                            # print(consulta)
+                            cursor.execute(consulta)
+                            db.commit()
+                            cursor.close()
+                    elif marcaTarjeta == 2:  # cashback
+                        if total >= 0.01 and total <= 25.41:
+                            cashBack = total * 0
+                        elif total >= 25.42 and total <= 88.95:
+                            cashBack = total * 0.02
+                        elif total >= 88.96:
+                            cashBack = total * 0.05
+                        if cashBack > 0:
+                            obtenerTarjeta = []
+                            obtenerTarjeta = Tarjetadecredito.objects.filter(numerotarjeta=numeroTarjeta).values_list()
+                            cashActual = obtenerTarjeta[0][8]
+                            cashTotal = 0
+                            cashTotal = float(cashActual) + cashBack
+                            print()
+                            db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
+                            cursor = db.cursor()
+                            consulta = "UPDATE TarjetaDeCredito SET cashback=" + str(
+                                cashTotal) + " WHERE numeroTarjeta=" + str(numeroTarjeta) + ""
+                            print(consulta)
+                            cursor.execute(consulta)
+                            db.commit()
+                            cursor.close()
+
+                            saldoActual = obtenerTarjeta[0][10]
+                            saldoTotal = float(saldoActual) - cashBack
+                            print("actual", saldoActual)
+                            print("nuevo", cashBack)
+                            print("total", saldoTotal)
+                            db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
+                            cursor = db.cursor()
+                            consulta = "UPDATE TarjetaDeCredito SET saldo=" + str(
+                                saldoTotal) + " WHERE numeroTarjeta=" + str(numeroTarjeta) + ""
+                            print(consulta)
+                            cursor.execute(consulta)
+                            db.commit()
+                            cursor.close()
+
+                            # registar transaccion
+                            db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
+                            cursor = db.cursor()
+                            consulta = "INSERT INTO TransaccionTarjeta(numeroTarjeta,codigoMoneda ,fecha, descipcion, monto) VALUES" \
+                                       "(" + str(numeroTarjeta) + "," + str(
+                                monedaTarjeta) + " ,'" + fecha2 + "', 'Transaccion de cashback por: " + descripcion + "', " + str(
+                                cashBack) + ")"
+                            print(consulta)
+                            cursor.execute(consulta)
+                            db.commit()
+                            cursor.close()
+
             else:
                 print(f"No cuenta con saldo suficiente {total} -- saldo {saldo}")
                 mensaje = f"No cuenta con saldo suficiente: Saldo-> {saldo}   Total->{total}"

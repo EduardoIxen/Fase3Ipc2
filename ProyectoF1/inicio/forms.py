@@ -46,3 +46,19 @@ class ConsultaPlanilla(forms.Form):
     class Meta:
         fields = ('planilla')
 
+class SolicitudPrestamo(forms.Form):
+    def __init__(self, listaCuentas, *args, **kwargs):
+        super(SolicitudPrestamo, self).__init__(*args, **kwargs)
+        self.fields['cuenta'] = forms.CharField(widget=forms.Select(choices=listaCuentas))
+    descripcion = forms.CharField(widget=forms.Textarea, required=True, label="Descripcion")
+    montoSolicitado = forms.DecimalField(required=True, label="Monto solicitado", decimal_places=2)
+    listaTiempo = []
+    listaTiempo.append(("12 meses", "12 meses"))
+    listaTiempo.append(("24 meses", "24 meses"))
+    listaTiempo.append(("36 meses", "36 meses"))
+    listaTiempo.append(("48 meses", "48 meses"))
+    tiempoEnDevolver = forms.CharField(widget=forms.Select(choices=listaTiempo), label="Tiempo en que se cancelará el pago")
+
+    class Meta:
+        fields = ('cuenta', 'descripcion', 'montoSolicitado', 'moneda', 'tiempoEnDevolver')
+

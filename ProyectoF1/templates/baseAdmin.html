@@ -35,6 +35,14 @@
                 <a href="{% url 'creartarjeta' %}">Crear tarjeta</a>
             </div>
         </div>
+        <div class="dropdown">
+            <button class="dropbtn">Prestamos
+                <i class="fa fa-caret-down"></i>
+            </button>
+            <div class="dropdown-content">
+                <a href="{% url 'listarPrestamo' %}">Solicitudes de prestamos</a>
+            </div>
+        </div>
         <a id="logout" href="{% url 'loginadmin' %}">Salir</a>
     </div>
     {% block content %}

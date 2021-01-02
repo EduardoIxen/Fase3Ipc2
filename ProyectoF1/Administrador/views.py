@@ -594,3 +594,59 @@ def crearTarjeta(request):
 
     return render(request, 'creartarjeta.html', variables)
 
+
+def listarSolicitudes(request):
+    solicitudes = Prestamo.objects.filter(aprobado=False).values_list()
+    #print(solicitudes)
+    variables = {
+        'lista': solicitudes
+    }
+    return render(request, "listarSolicitudesPrestamos.html", variables)
+
+
+def aprobarPrestamo(request, idPrestamo):
+    print(idPrestamo)
+    solicitudes = Prestamo.objects.filter(codigoprestamo=idPrestamo).values_list()
+    cuenta = solicitudes[0][6]
+    monto = solicitudes[0][1]
+
+    monet = Cuentamonetaria.objects.filter(codigocuenta=cuenta).values_list()
+    ahor = Cuentadeahorro.objects.filter(codigocuenta=cuenta).values_list()
+    plz = Cuentaplazofijo.objects.filter(codigocuenta=cuenta).values_list()
+
+    if monet:
+        saldoActual = monet[0][3]
+        saldoTotal = float(saldoActual + monto)
+        db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
+        cursor = db.cursor()
+        consulta = "update CuentaMonetaria set saldo="+str(saldoTotal)+" where codigoCuenta="+str(cuenta)+""
+        cursor.execute(consulta)
+        db.commit()
+        cursor.close()
+    elif ahor:
+        saldoActual = monet[0][3]
+        saldoTotal = float(saldoActual + monto)
+        db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
+        cursor = db.cursor()
+        consulta = "update CuentaMonetaria set saldo="+str(saldoTotal)+" where codigoCuenta="+str(cuenta)+""
+        cursor.execute(consulta)
+        db.commit()
+        cursor.close()
+    elif plz:
+        saldoActual = monet[0][4]
+        saldoTotal = float(saldoActual + monto)
+        db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
+        cursor = db.cursor()
+        consulta = "update CuentaMonetaria set saldo="+str(saldoTotal)+" where codigoCuenta="+str(cuenta)+""
+        cursor.execute(consulta)
+        db.commit()
+        cursor.close()
+
+    db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
+    cursor = db.cursor()
+    consulta = "update Prestamo set aprobado=" + str(True) + " where codigoPrestamo=" + str(idPrestamo) + ""
+    cursor.execute(consulta)
+    db.commit()
+    cursor.close()
+
+    return redirect('listarPrestamo')

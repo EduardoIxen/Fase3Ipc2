@@ -1,5 +1,10 @@
-{% extends 'base.html' %}
 {% block content %}
+    {% if idEmpresa != 0 %}
+        {% include 'baseEmpresa.html' %}
+        {% else %}
+        {% include 'base.html' %}
+    {% endif %}
+
     <h1>Estado de tarjetas</h1>
     <hr>
     <form method="post" class="formulario">
@@ -14,6 +19,7 @@
             <th>Numero tarjeta</th>
             <th>Numero de cuenta</th>
             <th>Puntos</th>
+            <th>Moneda</th>
             <th>Saldo Q</th>
             <th>Saldo $</th>
         </tr>
@@ -24,6 +30,11 @@
                 <td>------</td>
             {% else %}
                 <td>{{ puntos }}</td>
+            {% endif %}
+            {% if moneda == 1 %}
+                <td>Quetzal</td>
+            {% else %}
+                <td>Dolar</td>
             {% endif %}
             <td>{{ saldoQ }}</td>
             <td>{{ saldoS }}</td>

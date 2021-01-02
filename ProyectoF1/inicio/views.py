@@ -81,7 +81,208 @@ def transferencia(request):
 
 
 def prestamo(request):
-    return render(request, "prestamo.html")
+    idUsuario = 0
+    idUsuario2 = 0
+    idEmpresa = 0
+    interes = 0
+    dic = request.session['datos']
+    if dic.get('cui') != None:
+        idUsuario = dic.get('cui')
+        idUsuario2 = dic.get('cui')
+    elif dic.get('idEmpresa') != None:
+        idUsuario = dic.get('idEmpresa')
+        idEmpresa = dic.get('idEmpresa')
+
+    cuentasCl = Detalleclientecuenta.objects.filter(codigocliente=idUsuario).values_list()
+    cuentasEmp = Detalleclientecuenta.objects.filter(idempresa=idUsuario).values_list()
+    listaCuentas = []
+    if cuentasCl:
+        for cuenta in cuentasCl:
+            if cuenta[3] != None:
+                listaCuentas.append((cuenta[3], cuenta[3]))
+            elif cuenta[4] != None:
+                listaCuentas.append((cuenta[4], cuenta[4]))
+            elif cuenta[5] != None:
+                listaCuentas.append((cuenta[5], cuenta[5]))
+            else:
+                listaCuentas.append(("No tiene cuentas", "No tiene cuentas"))
+    elif cuentasEmp:
+        for cuenta in cuentasEmp:
+            if cuenta[3] != None:
+                listaCuentas.append((cuenta[3], cuenta[3]))
+            elif cuenta[4] != None:
+                listaCuentas.append((cuenta[4], cuenta[4]))
+            elif cuenta[5] != None:
+                listaCuentas.append((cuenta[5], cuenta[5]))
+            else:
+                listaCuentas.append(("No tiene cuentas", "No tiene cuentas"))
+
+    form = SolicitudPrestamo(listaCuentas)
+    variables = {
+        'form': form,
+        'idEmpresa': idEmpresa
+    }
+
+    if request.method == "POST":
+        form = SolicitudPrestamo(listaCuentas, data=request.POST)
+        if form.is_valid():
+            datos = form.cleaned_data
+            cuentaSeleccionada = datos.get('cuenta')
+            descripcion = datos.get('descripcion')
+            montoSolicitado = datos.get('montoSolicitado')
+            tiempo = datos.get('tiempoEnDevolver')
+            cuotaSinInteres = 0
+            cuotaConInteres = 0
+            if montoSolicitado >= 100 and montoSolicitado <= 5000:
+                if tiempo == "12 meses":
+                    interes = 0.05
+                    cuotaSinInteres = montoSolicitado / 12
+                    cuotaConInteres = float(montoSolicitado/12)*interes
+                    cuotaConInteres = float(cuotaSinInteres) + cuotaConInteres
+                elif tiempo == "24 meses":
+                    interes = 0.04
+                    cuotaSinInteres = montoSolicitado / 24
+                    cuotaConInteres = float(montoSolicitado/24)*interes
+                    cuotaConInteres = float(cuotaSinInteres) + cuotaConInteres
+                elif tiempo == "36 meses":
+                    interes = 0.0335
+                    cuotaSinInteres = montoSolicitado / 36
+                    cuotaConInteres = float(montoSolicitado/36)*interes
+                    cuotaConInteres = float(cuotaSinInteres) + cuotaConInteres
+                elif tiempo == "48 meses":
+                    interes = 0.025
+                    cuotaSinInteres = montoSolicitado / 48
+                    cuotaConInteres = float(montoSolicitado/48)*interes
+                    cuotaConInteres = float(cuotaSinInteres) + cuotaConInteres
+            elif montoSolicitado >= 5000.01 and montoSolicitado <= 15000:
+                if tiempo == "12 meses":
+                    interes = 0.0525
+                    cuotaSinInteres = montoSolicitado / 12
+                    cuotaConInteres = float(montoSolicitado/12)*interes
+                    cuotaConInteres = float(cuotaSinInteres) + cuotaConInteres
+                elif tiempo == "24 meses":
+                    interes = 0.0415
+                    cuotaSinInteres = montoSolicitado / 24
+                    cuotaConInteres = float(montoSolicitado/24)*interes
+                    cuotaConInteres = float(cuotaSinInteres) + cuotaConInteres
+                elif tiempo == "36 meses":
+                    interes = 0.035
+                    cuotaSinInteres = montoSolicitado / 36
+                    cuotaConInteres = float(montoSolicitado/36)*interes
+                    cuotaConInteres = float(cuotaSinInteres) + cuotaConInteres
+                elif tiempo == "48 meses":
+                    interes = 0.026
+                    cuotaSinInteres = montoSolicitado / 48
+                    cuotaConInteres = float(montoSolicitado/48)*interes
+                    cuotaConInteres = float(cuotaSinInteres) + cuotaConInteres
+            elif montoSolicitado >= 15000.01 and montoSolicitado <= 30000:
+                if tiempo == "12 meses":
+                    interes = 0.0530
+                    cuotaSinInteres = montoSolicitado / 12
+                    cuotaConInteres = float(montoSolicitado/12)*interes
+                    cuotaConInteres = float(cuotaSinInteres) + cuotaConInteres
+                elif tiempo == "24 meses":
+                    interes = 0.0420
+                    cuotaSinInteres = montoSolicitado / 24
+                    cuotaConInteres = float(montoSolicitado/24)*interes
+                    cuotaConInteres = float(cuotaSinInteres) + cuotaConInteres
+                elif tiempo == "36 meses":
+                    interes = 0.0355
+                    cuotaSinInteres = montoSolicitado / 36
+                    cuotaConInteres = float(montoSolicitado/36)*interes
+                    cuotaConInteres = float(cuotaSinInteres) + cuotaConInteres
+                elif tiempo == "48 meses":
+                    interes = 0.0265
+                    cuotaSinInteres = montoSolicitado / 48
+                    cuotaConInteres = float(montoSolicitado/48)*interes
+                    cuotaConInteres = float(cuotaSinInteres) + cuotaConInteres
+            elif montoSolicitado >= 30000.01 and montoSolicitado <= 60000:
+                if tiempo == "12 meses":
+                    interes = 0.0535
+                    cuotaSinInteres = montoSolicitado / 12
+                    cuotaConInteres = float(montoSolicitado/12)*interes
+                    cuotaConInteres = float(cuotaSinInteres) + cuotaConInteres
+                elif tiempo == "24 meses":
+                    interes = 0.0425
+                    cuotaSinInteres = montoSolicitado / 24
+                    cuotaConInteres = float(montoSolicitado/24)*interes
+                    cuotaConInteres = float(cuotaSinInteres) + cuotaConInteres
+                elif tiempo == "36 meses":
+                    interes = 0.0360
+                    cuotaSinInteres = montoSolicitado / 36
+                    cuotaConInteres = float(montoSolicitado/36)*interes
+                    cuotaConInteres = float(cuotaSinInteres) + cuotaConInteres
+                elif tiempo == "48 meses":
+                    interes = 0.0270
+                    cuotaSinInteres = montoSolicitado / 48
+                    cuotaConInteres = float(montoSolicitado/48)*interes
+                    cuotaConInteres = float(cuotaSinInteres) + cuotaConInteres
+            elif montoSolicitado >= 60000.01:
+                if tiempo == "12 meses":
+                    interes = 0.0545
+                    cuotaSinInteres = montoSolicitado / 12
+                    cuotaConInteres = float(montoSolicitado/12)*interes
+                    cuotaConInteres = float(cuotaSinInteres) + cuotaConInteres
+                elif tiempo == "24 meses":
+                    interes = 0.0435
+                    cuotaSinInteres = montoSolicitado / 24
+                    cuotaConInteres = float(montoSolicitado/24)*interes
+                    cuotaConInteres = float(cuotaSinInteres) + cuotaConInteres
+                elif tiempo == "36 meses":
+                    interes = 0.0370
+                    cuotaSinInteres = montoSolicitado / 36
+                    cuotaConInteres = float(montoSolicitado/36)*interes
+                    cuotaConInteres = float(cuotaSinInteres) + cuotaConInteres
+                elif tiempo == "48 meses":
+                    interes = 0.0280
+                    cuotaSinInteres = montoSolicitado / 48
+                    cuotaConInteres = float(montoSolicitado/48)*interes
+                    cuotaConInteres = float(cuotaSinInteres) + cuotaConInteres
+
+            pagos = 0
+            if tiempo == "12 meses":
+                pagos = 12
+            elif tiempo == "24 meses":
+                pagos = 24
+            elif tiempo == "36 meses":
+                pagos = 36
+            elif tiempo == "48 meses":
+                pagos = 48
+            totalCI = pagos * cuotaConInteres
+
+            if idUsuario2 != 0:
+
+                db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
+                cursor = db.cursor()
+                consulta = "INSERT INTO Prestamo(montoRequerido, modalidadAPagar, codigoCliente, descripcion, cuenta, aprobado)" \
+                           " values("+str(montoSolicitado)+", "+str(pagos)+", "+str(idUsuario2)+", '"+descripcion+"',"+str(cuentaSeleccionada)+", "+str(0)+")"
+                print(consulta)
+                cursor.execute(consulta)
+                db.commit()
+                cursor.close()
+            elif idEmpresa != 0:
+                db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
+                cursor = db.cursor()
+                consulta = "INSERT INTO Prestamo(montoRequerido, modalidadAPagar, idEmpresa, descripcion, cuenta, aprobado)" \
+                           " values(" + str(montoSolicitado) + ", " + str(
+                    pagos) + ", " + str(idEmpresa) + ", '" + descripcion + "',"+cuentaSeleccionada+" ," + str(0) + ")"
+                print(consulta)
+                cursor.execute(consulta)
+                db.commit()
+                cursor.close()
+
+            form = SolicitudPrestamo(listaCuentas)
+            variables = {
+                'montoSolicitado': montoSolicitado,
+                'meses': tiempo,
+                'cuotaSinInteres': f"{cuotaSinInteres:.2f}",
+                'cuotaConInteres': f"{cuotaConInteres:.2f}",
+                'pagos': pagos,
+                'totalConInteres': f"{totalCI:.2f}",
+                'form': form
+            }
+
+    return render(request, "prestamo.html", variables)
 
 
 def estadoDeCeunta(request):
@@ -107,11 +308,14 @@ def logout(request):
 
 
 def tarjeta(request):
+    idUsuario = 0
+    idEmpresa = 0
     dic = request.session['datos']
     if dic.get('cui') != None:
         idUsuario = dic.get('cui')
     elif dic.get('idEmpresa') != None:
         idUsuario = dic.get('idEmpresa')
+        idEmpresa = dic.get('idEmpresa')
 
     tarjetasUsuario = Tarjetadecredito.objects.filter(cuicliente=idUsuario).values_list()
     tarjetasEmpresa = Tarjetadecredito.objects.filter(idempresa=idUsuario).values_list()
@@ -129,10 +333,14 @@ def tarjeta(request):
         form = consultarTarjeta(listaTarjetas)
     else:
         mensaje = "No posee tarjetas de credito"
+        listaAlterna = []
+        listaAlterna.append(("No cuenta con tarjetas", "No cuenta con tarjetas"))
+        form = consultarTarjeta(listaAlterna)
     variables = {
         'listaTarjetas': listaTarjetas,
         'mensaje': mensaje,
-        'form': form
+        'form': form,
+        'idEmpresa': idEmpresa
     }
 
     if request.method == 'POST':
@@ -180,10 +388,12 @@ def tarjeta(request):
                 'numeroTarjeta': detalleTarjeta[0][0],
                 'numeroCuenta': detalleTarjeta[0][6],
                 'numeroCuenta': detalleTarjeta[0][6],
+                'moneda': detalleTarjeta[0][5],
                 'puntos': puntos,
                 'saldoQ': saldoQ,
                 'saldoS': saldoS,
-                'listaTransaccion': listaTransacciones
+                'listaTransaccion': listaTransacciones,
+                'idEmpresa': idEmpresa
             }
     return render(request, "tarjetas.html", variables)
 
@@ -288,7 +498,7 @@ def CargarCSV(request):
     csvFile = request.FILES['file']
     dataSet = csvFile.read().decode('UTF-8')
     io_string = io.StringIO(dataSet)
-    print(io_string)
+    #print(io_string)
     contador = 0
     listaRegistro = []
     for columna in csv.reader(io_string, delimiter=',', quotechar='|'):
@@ -302,6 +512,7 @@ def CargarCSV(request):
     return redirect('seleccionarplanilla')
 
 def cargarCSV2(request):
+    noExistentes = ''
     dicEmpresa = request.session['datos']
     idEmpresa = dicEmpresa.get('idEmpresa')
     obtenerPlanillas = Planilla.objects.filter(idempresa=idEmpresa).values_list()
@@ -311,13 +522,13 @@ def cargarCSV2(request):
             listaPlanillas.append((planilla[0], planilla[1]))
     else:
         listaPlanillas.append(("No hay planillas", "No hay planillas"))
-    print(listaPlanillas)
+    #print(listaPlanillas)
     form = ConsultaPlanilla(listaPlanillas)
     variables = {
         'form': form
     }
     registrosCSV = request.session['csv']
-    print("tiiipooo", registrosCSV)
+    #print("tiiipooo", registrosCSV)
     if request.method == 'POST':
         form = ConsultaPlanilla(listaPlanillas, data=request.POST)
         if form.is_valid():
@@ -329,20 +540,34 @@ def cargarCSV2(request):
                 contador += 1
                 if contador > 1:
                     #print(registro['Nombre'])
-                    db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
-                    cursor = db.cursor()
-                    consulta = "INSERT INTO DetallePlanilla(codigoPlanilla, numeroCuenta, nombre, sueldo) values(" + str(planilla) + ", " + str(
-                        registro['Cuenta']) + ", '"+ registro['Nombre']+"', "+registro['Sueldo']+")"
-                    #print(consulta)
-                    cursor.execute(consulta)
-                    db.commit()
-                    cursor.close()
-                    mensaje = "Usuarios registrados con exito"
-                    form = ConsultaPlanilla(listaPlanillas)
-                    variables = {
-                        'mensaje':mensaje,
-                        'form': form
-                    }
+                    existeCuentaMon = Detalleclientecuenta.objects.filter(codigocuentamonetaria=registro['Cuenta']).values_list()
+                    existeCuentaAh = Detalleclientecuenta.objects.filter(codigocuentaahorro=registro['Cuenta']).values_list()
+                    existeCuentaPl = Detalleclientecuenta.objects.filter(codigocuentaplazofijo=registro['Cuenta']).values_list()
+                    if existeCuentaMon or existeCuentaAh or existeCuentaPl:
+                        db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
+                        cursor = db.cursor()
+                        consulta = "INSERT INTO DetallePlanilla(codigoPlanilla, numeroCuenta, nombre, sueldo) values(" + str(
+                            planilla) + ", " + str(
+                            registro['Cuenta']) + ", '" + registro['Nombre'] + "', " + registro['Sueldo'] + ")"
+                        # print(consulta)
+                        cursor.execute(consulta)
+                        db.commit()
+                        cursor.close()
+                        mensaje = "Usuarios registrados con exito"
+                        form = ConsultaPlanilla(listaPlanillas)
+                        variables = {
+                            'mensaje': mensaje,
+                            'form': form
+                        }
+                    else:
+                        noExistentes = noExistentes +" ||| "+ registro['Cuenta']
+                        mensaje = f"No existe la cuenta {noExistentes}"
+                        form = ConsultaPlanilla(listaPlanillas)
+                        variables = {
+                            'mensaje': mensaje,
+                            'form': form
+                        }
+
 
 
     return render(request, "seleccionarPlanilla.html", variables)

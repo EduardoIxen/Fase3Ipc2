@@ -1,21 +1,36 @@
-{% extends 'base.html' %}
 {% block content %}
+    {% if idEmpresa != 0 %}
+        {% include 'baseEmpresa.html' %}
+    {% elif idEmpresa == 0 %}
+        {% include 'base.html'%}
+    {% endif %}
     <h1>Solicitud de prestamo</h1>
-    <form class="formulario">
-        <label for="fcuentaPrestamo">Cuenta que solicita el prestamo</label>
-        <select class="listaDesplegable" id="fcuentaPrestamo" name="cuentaPresta">
-            <option value="quincena">Cuenta 1</option>
-            <option value="mensual">Cuenta 2</option>
-            <option value="trimestre">Cuenta 3</option>
-        </select><br>
-        <label for="fmontoRequerido">Monto requerido</label>
-        <input type="text" id="fmontoRequerido" name="montoRequerido"><br>
-        <label for="fmodalidadPago">Modalidad de pago</label>
-        <select class="listaDesplegable" id="fmodalidadPago" name="modalidadDePago">
-            <option value="quincena">Quincena</option>
-            <option value="mensual">Mensual</option>
-            <option value="trimestre">Trimestre</option>
-        </select><br>
-        <input type="submit" id="bntPrestamo" class="btnSubmit" value="Solicitar prestamo">
+    <form class="formulario" method="post">
+        {{ form.as_p }}
+        {% csrf_token %}
+        <button type="submit" class="btnSubmit"> Solicitar prestamo</button>
     </form>
+    <br>
+    {% if montoSolicitado != None %}
+        <table class="tabla1">
+            <tr>
+                <th>Monto solicitado</th>
+                <th>Cantidad de pagos identicos</th>
+                <th>Pago sin interes</th>
+                <th>Pago con interes</th>
+                <th>Pago total con intereses</th>
+            </tr>
+        <tr>
+            <td>{{ montoSolicitado }}</td>
+            <td>{{ pagos }}</td>
+            <td>{{ cuotaSinInteres }}</td>
+            <td>{{ cuotaConInteres }}</td>
+            <td>{{ totalConInteres }}</td>
+        </tr>
+        </table>
+        <br>
+        <br>
+        <br>
+    {% endif %}
+
 {% endblock content %}
