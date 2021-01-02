@@ -20,6 +20,18 @@
             </ul>
     {% endif %}
     </div>
-
+        <table class="tabla1">
+        <tr>
+            <th>Cuenta</th>
+            <th>Saldo</th>
+        </tr>
+        {% for cuenta in listaCuentas %}
+            <tr>
+                <td>{{ cuenta.0.0 }}</td>
+                <td>{{ cuenta.0.3 }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+    </div>
 
 {% endblock %}

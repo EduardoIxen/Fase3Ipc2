@@ -291,12 +291,67 @@ def estadoDeCeunta(request):
 
 def infoUsr(request):
     diccSession = request.session['datos']
-    return render(request, "infoUsr.html", diccSession)
+    cui = diccSession.get('cui')
+    nit = diccSession.get('nit')
+    nombre = diccSession.get('nombre')
+    usuario = diccSession.get('usuario')
+
+    cuentas = Detalleclientecuenta.objects.filter(codigocliente=cui).values_list()
+    listaCuentas = []
+    for cuenta in cuentas:
+        if cuenta[3] != None:
+            cuentaMonetaria = Cuentamonetaria.objects.filter(codigocuenta=cuenta[3]).values_list()
+            listaCuentas.append(cuentaMonetaria)
+        elif cuenta[4] != None:
+            cuentaAhorro = Cuentadeahorro.objects.filter(codigocuenta=cuenta[4]).values_list()
+            listaCuentas.append(cuentaAhorro)
+        elif cuenta[5] != None:
+            cuentaPlazo = Cuentaplazofijo.objects.filter(codigocuenta=cuenta[5]).values_list()
+            listaCuentas.append(cuentaPlazo)
+
+    print(listaCuentas)
+    variables = {
+        'listaCuentas': listaCuentas,
+        'cui': nombre,
+        'nit': nit,
+        'nombre': nombre,
+        'usuario': usuario
+    }
+    return render(request, "infoUsr.html", variables)
 
 
 def infoEmpresa(request):
     diccSession = request.session['datos']
-    return render(request, "infoEmpresa.html", diccSession)
+    idEmpresa = diccSession.get('idEmpresa')
+    nombre = diccSession.get('nombre')
+    nombreCom = diccSession.get('nombreComercial')
+    representante = diccSession.get('representante')
+    usrio = diccSession.get('usuarioL')
+    cuentas = Detalleclientecuenta.objects.filter(idempresa=idEmpresa).values_list()
+    listaCuentas = []
+    for cuenta in cuentas:
+        if cuenta[3] != None:
+            cuentaMonetaria = Cuentamonetaria.objects.filter(codigocuenta=cuenta[3]).values_list()
+            listaCuentas.append(cuentaMonetaria)
+        elif cuenta[4] != None:
+            cuentaAhorro = Cuentadeahorro.objects.filter(codigocuenta=cuenta[4]).values_list()
+            listaCuentas.append(cuentaAhorro)
+        elif cuenta[5] != None:
+            cuentaPlazo = Cuentaplazofijo.objects.filter(codigocuenta=cuenta[5]).values_list()
+            listaCuentas.append(cuentaPlazo)
+
+    print(listaCuentas)
+    variables = {
+        'listaCuentas': listaCuentas,
+        'idEmpresa': idEmpresa,
+        'nombre': nombre,
+        'nombreCom': nombreCom,
+        'repre': representante,
+        'usr': usrio
+    }
+
+
+    return render(request, "infoEmpresa.html", variables)
 
 
 def logout(request):
