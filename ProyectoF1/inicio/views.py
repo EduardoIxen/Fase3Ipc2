@@ -571,3 +571,255 @@ def cargarCSV2(request):
 
 
     return render(request, "seleccionarPlanilla.html", variables)
+
+
+def pagarPlanilla(request):
+    idUsuario = 0
+    idEmpresa = 0
+    cuentasGlobales = []
+    detallePlanilla = []
+    total = 0
+    total2 = 0
+    dic = request.session['datos']
+    if dic.get('cui') != None:
+        idUsuario = dic.get('cui')
+    elif dic.get('idEmpresa') != None:
+        idEmpresa = dic.get('idEmpresa')
+
+    planillasDisponibles = Planilla.objects.filter(idempresa=idEmpresa).values_list()
+    listaPlanillas = []
+    for planilla in planillasDisponibles:
+        listaPlanillas.append((planilla[0], planilla[1]))
+    form = ConsultaPlanilla(listaPlanillas)
+    variables = {
+        'form': form
+    }
+    if request.method == "POST":
+        form = ConsultaPlanilla(listaPlanillas, data=request.POST)
+        if form.is_valid():
+            datos = form.cleaned_data
+            planillaSeleccionada = datos.get('planilla')
+            detallePlanilla = Detalleplanilla.objects.filter(codigoplanilla=planillaSeleccionada).values_list()
+            listaSueldos = []
+            for registro in detallePlanilla:
+                listaSueldos.append(registro[4])
+            total = sum(listaSueldos)
+            total2 = sum(listaSueldos)
+            lsCuentas = []
+            cuentasUsr = Detalleclientecuenta.objects.filter(idempresa=idEmpresa).values_list()
+            print(cuentasUsr)
+            for cuenta in cuentasUsr:
+                if cuenta[3] != None:
+                    lsCuentas.append((cuenta[3], cuenta[3]))
+                elif cuenta[4] != None:
+                    lsCuentas.append((cuenta[4], cuenta[4]))
+                elif cuenta[5] != None:
+                    lsCuentas.append((cuenta[5], cuenta[5]))
+
+            print(lsCuentas)
+            cuentasGlobales = lsCuentas
+            total2 = total
+            fCuentas = consultarCuenta(lsCuentas)
+            variables = {
+                'form': form,
+                'lista': detallePlanilla,
+                'total': total,
+                'fCuentas': fCuentas
+            }
+            listaCobro = []
+            for detalle in detallePlanilla:
+                listaCobro.append(detalle)
+            variables2 = {
+                'total': float(total),
+                'planilla': planillaSeleccionada
+            }
+            request.session['pagoPlanilla'] = variables2
+
+        fCuentas = consultarCuenta(cuentasGlobales, data=request.POST)
+        if fCuentas.is_valid():
+            print(detallePlanilla)
+            datos2 = fCuentas.cleaned_data
+            cuentaPago = datos2.get('cuenta')
+            consCuentaAh = Cuentadeahorro.objects.filter(codigocuenta=cuentaPago).values_list()
+            consCuentaMn = Cuentamonetaria.objects.filter(codigocuenta=cuentaPago).values_list()
+            consCuentaPl = Cuentaplazofijo.objects.filter(codigocuenta=cuentaPago).values_list()
+            dic = request.session['pagoPlanilla']
+            total = dic.get('total')
+            plSelec = dic.get('planilla')
+            detallePlanilla = Detalleplanilla.objects.filter(codigoplanilla=plSelec).values_list()
+            if consCuentaAh:
+                print("entro1\n")
+                saldo = consCuentaAh[0][3]
+                if saldo >= total:
+                    for detalle in detallePlanilla:
+                        cuentaEmp = detalle[2]
+                        sueldoEmp = detalle[4]
+                        consulta1 = Cuentadeahorro.objects.filter(codigocuenta=cuentaEmp).values_list()
+                        consulta2 = Cuentamonetaria.objects.filter(codigocuenta=cuentaEmp).values_list()
+                        consulta3 = Cuentaplazofijo.objects.filter(codigocuenta=cuentaEmp).values_list()
+
+                        if consulta1:
+                            db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
+                            cursor = db.cursor()
+                            consulta = "UPDATE CuentaDeAhorro set saldo=saldo+"+str(sueldoEmp)+" where codigoCuenta="+str(cuentaEmp)+""
+                            print(consulta)
+                            cursor.execute(consulta)
+                            db.commit()
+                            cursor.close()
+                        elif consulta2:
+                            db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
+                            cursor = db.cursor()
+                            consulta = "UPDATE CuentaMonetaria set saldo=saldo+"+str(sueldoEmp)+" where codigoCuenta="+str(cuentaEmp)+""
+                            print(consulta)
+                            cursor.execute(consulta)
+                            db.commit()
+                            cursor.close()
+                        elif consulta3:
+                            db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
+                            cursor = db.cursor()
+                            consulta = "UPDATE CuentaPlazoFijo set saldo=saldo+"+str(sueldoEmp)+" where codigoCuenta="+str(cuentaEmp)+""
+                            print(consulta)
+                            cursor.execute(consulta)
+                            db.commit()
+                            cursor.close()
+                        db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
+                        cursor = db.cursor()
+                        consulta = "UPDATE CuentaDeAhorro set saldo=saldo-" + str(
+                            sueldoEmp) + " where codigoCuenta=" + str(cuentaPago) + ""
+                        print(consulta)
+                        cursor.execute(consulta)
+                        db.commit()
+                        cursor.close()
+                else:
+                    print("noooooo hay saldo!!!!")
+                    mensaje = "No hay suficiente saldo"
+                    variables = {
+                        'form':form,
+                        'mensaje': mensaje,
+                        'total': total
+                    }
+            elif consCuentaMn:
+                print("entro2\n")
+                saldo = consCuentaMn[0][3]
+                print(saldo)
+                print(total2)
+                if saldo >= total:
+                    print("entro 2.2")
+                    for detalle in detallePlanilla:
+                        cuentaEmp = detalle[2]
+                        sueldoEmp = detalle[4]
+                        print("sueldo emp", sueldoEmp)
+                        print("cuenta emo", cuentaEmp)
+                        consulta1 = Cuentadeahorro.objects.filter(codigocuenta=cuentaEmp).values_list()
+                        consulta2 = Cuentamonetaria.objects.filter(codigocuenta=cuentaEmp).values_list()
+                        consulta3 = Cuentaplazofijo.objects.filter(codigocuenta=cuentaEmp).values_list()
+
+                        if consulta1:
+                            db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name,
+                                                 connect_timeout=5)
+                            cursor = db.cursor()
+                            consulta = "UPDATE CuentaDeAhorro set saldo=saldo+" + str(
+                                sueldoEmp) + " where codigoCuenta=" + str(cuentaEmp) + ""
+                            print(consulta)
+                            cursor.execute(consulta)
+                            db.commit()
+                            cursor.close()
+                        elif consulta2:
+                            db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name,
+                                                 connect_timeout=5)
+                            cursor = db.cursor()
+                            consulta = "UPDATE CuentaMonetaria set saldo=saldo+" + str(
+                                sueldoEmp) + " where codigoCuenta=" + str(cuentaEmp) + ""
+                            print(consulta)
+                            cursor.execute(consulta)
+                            db.commit()
+                            cursor.close()
+                        elif consulta3:
+                            db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name,
+                                                 connect_timeout=5)
+                            cursor = db.cursor()
+                            consulta = "UPDATE CuentaPlazoFijo set saldo=saldo+" + str(
+                                sueldoEmp) + " where codigoCuenta=" + str(cuentaEmp) + ""
+                            print(consulta)
+                            cursor.execute(consulta)
+                            db.commit()
+                            cursor.close()
+                        db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name, connect_timeout=5)
+                        cursor = db.cursor()
+                        consulta = "UPDATE CuentaMonetaria set saldo=saldo-" + str(
+                            sueldoEmp) + " where codigoCuenta=" + str(cuentaPago) + ""
+                        print(consulta)
+                        cursor.execute(consulta)
+                        db.commit()
+                        cursor.close()
+                else:
+                    print("noooooo hay saldo!!!!")
+                    mensaje = "No hay suficiente saldo"
+                    variables = {
+                        'form':form,
+                        'mensaje': mensaje,
+                        'total': total
+                    }
+            elif consCuentaPl:
+                print("entro3\n")
+                saldo = consCuentaPl[0][3]
+                if saldo >= total:
+                    for detalle in detallePlanilla:
+                        cuentaEmp = detalle[2]
+                        sueldoEmp = detalle[4]
+                        consulta1 = Cuentadeahorro.objects.filter(codigocuenta=cuentaEmp).values_list()
+                        consulta2 = Cuentamonetaria.objects.filter(codigocuenta=cuentaEmp).values_list()
+                        consulta3 = Cuentaplazofijo.objects.filter(codigocuenta=cuentaEmp).values_list()
+
+                        if consulta1:
+                            db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name,
+                                                 connect_timeout=5)
+                            cursor = db.cursor()
+                            consulta = "UPDATE CuentaDeAhorro set saldo=saldo+" + str(
+                                sueldoEmp) + " where codigoCuenta=" + str(cuentaEmp) + ""
+                            print(consulta)
+                            cursor.execute(consulta)
+                            db.commit()
+                            cursor.close()
+                        elif consulta2:
+                            db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name,
+                                                 connect_timeout=5)
+                            cursor = db.cursor()
+                            consulta = "UPDATE CuentaMonetaria set saldo=saldo+" + str(
+                                sueldoEmp) + " where codigoCuenta=" + str(cuentaEmp) + ""
+                            print(consulta)
+                            cursor.execute(consulta)
+                            db.commit()
+                            cursor.close()
+                        elif consulta3:
+                            db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name,
+                                                 connect_timeout=5)
+                            cursor = db.cursor()
+                            consulta = "UPDATE CuentaPlazoFijo set saldo=saldo+" + str(
+                                sueldoEmp) + " where codigoCuenta=" + str(cuentaEmp) + ""
+                            print(consulta)
+                            cursor.execute(consulta)
+                            db.commit()
+                            cursor.close()
+                        db = MySQLdb.connect(host=host, user=user, password=contra, db=db_name,
+                                             connect_timeout=5)
+                        cursor = db.cursor()
+                        consulta = "UPDATE CuentaPlazoFijo set saldo=saldo-" + str(
+                            sueldoEmp) + " where codigoCuenta=" + str(cuentaPago) + ""
+                        print(consulta)
+                        cursor.execute(consulta)
+                        db.commit()
+                        cursor.close()
+                else:
+                    print("noooooo hay saldo!!!!")
+                    mensaje = "No hay suficiente saldo"
+                    variables = {
+                        'form':form,
+                        'mensaje': mensaje,
+                        'total': total
+                    }
+
+
+
+
+    return render(request, "visualizarPlanilla.html", variables)

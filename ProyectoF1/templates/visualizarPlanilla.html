@@ -1,0 +1,40 @@
+{% extends 'baseEmpresa.html' %}
+{% block content %}
+    <h1>Seleccionar planilla</h1>
+    <form class="formulario" method="post">
+        {{ form.as_p }}
+        {% csrf_token %}
+        <button type="submit" class="btnSubmit"> Ver planilla</button>
+    </form>
+    <br>
+    {% if lista %}
+        <table class="tabla1">
+            <tr>
+                <th>Numero cuenta</th>
+                <th>Nombre</th>
+                <th>Sueldo</th>
+            </tr>
+            {% for detalle in lista %}
+                <tr>
+                    <td>{{ detalle.2 }}</td>
+                    <td>{{ detalle.3 }}</td>
+                    <td>{{ detalle.4 }}</td>
+                </tr>
+            {% endfor %}
+            <tr>
+                <th></th>
+                <th>TOTAL</th>
+                <th>{{ total }}</th>
+            </tr>
+        </table>
+        <br>
+        <form class="formulario" method="post">
+            {{ fCuentas.as_p }}
+            {% csrf_token %}
+            <button type="submit" class="btnSubmit">Pagar planilla</button>
+        </form>
+    {% endif %}
+    {% if mensaje %}
+        <h1 class="error">{{ mensaje }}</h1>
+    {% endif %}
+{% endblock %}

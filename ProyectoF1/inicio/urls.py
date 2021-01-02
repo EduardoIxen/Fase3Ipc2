@@ -31,4 +31,5 @@ urlpatterns = [
     path('addempleadoplanilla/', views.addEmpleadoPlanilla, name="addempleadoplanilla"),
     path('cargarcsv/', views.CargarCSV, name="cargarcsv"),
     path('cargarcsv2/', views.cargarCSV2, name="seleccionarplanilla"),
+    path('pagarplanilla/', views.pagarPlanilla, name="pagarplanilla"),
 ]

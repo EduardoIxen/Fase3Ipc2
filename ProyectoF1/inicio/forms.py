@@ -62,3 +62,10 @@ class SolicitudPrestamo(forms.Form):
     class Meta:
         fields = ('cuenta', 'descripcion', 'montoSolicitado', 'moneda', 'tiempoEnDevolver')
 
+
+class consultarCuenta(forms.Form):
+    def __init__(self, listaCuentas, *args, **kwargs):
+        super(consultarCuenta, self).__init__(*args, **kwargs)
+        self.fields['cuenta'] = forms.CharField(widget=forms.Select(choices=listaCuentas), label="Cuentas")
+    class Meta:
+        fields = ('cuenta')
